@@ -18,6 +18,12 @@ Create Python virtual environment if you want.
 
 
 # Test Robot backend with Unity Simulation
+
+## Test screen streaming from Unity Simulator
+Run the following command in the project's root folder
+`python -m camera_source.unity_simulation_camera`
+Now load the Unity Simulator's scene `PushBlockRobotBackendTest` and press Play
+
 ## Generate proto codes
 ### gRPC code for Unity Simulation communication
 ```sh
