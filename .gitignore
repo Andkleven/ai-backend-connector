@@ -4,3 +4,6 @@ __pycache__
 
 *.jpg
 *.pdf
+
+
+computer_vision/unity_camera_calibration/*.png
