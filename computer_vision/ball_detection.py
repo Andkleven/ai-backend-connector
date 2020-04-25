@@ -2,6 +2,8 @@ import cv2
 import imutils
 import numpy as np
 
+
+# TODO: Make this a variable coming from main program
 min_ball_area_to_detect = 5000
 
 

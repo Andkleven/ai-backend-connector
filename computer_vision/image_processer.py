@@ -8,6 +8,9 @@ from computer_vision.aruco_marker_detection import get_aruco_marker_pos_and_rot
 from computer_vision.ball_detection import (
     find_balls_by_color,
     find_center_points)
+from computer_vision.geometry_utils import (
+    get_ray_angles,
+    create_sectors)
 
 
 class ImageProcesser():
@@ -26,6 +29,9 @@ class ImageProcesser():
         self._low_ball_color = np.array([100, 100, 100], dtype=np.float32)
         self._high_ball_color = np.array([173, 255, 255], dtype=np.float32)
 
+        self._angles = [-100, -45, -20, 0, 20, 45, 100]
+        self._ray_length = 5
+
     def image_to_observations(self, image):
         robot_pos, robot_rot = self._get_robot_coordinates(
             image=image,
@@ -36,23 +42,23 @@ class ImageProcesser():
             image=image,
             debug=self._debug)
 
-        # lower_obs, upper_obs = self._get_observations(
-        #     image=image,
-        #     robot_pos=robot_pos,
-        #     robot_rot=robot_rot,
-        #     ball_pos=ball_pos,
-        #     ball_rot=ball_rot)
-        # return lower_obs, upper_obs
+        lower_obs, upper_obs = self._get_observations(
+            robot_pos=robot_pos,
+            robot_rot=robot_rot,
+            ball_pos=ball_pos,
+            debug=self._debug,
+            image=image)
+        return lower_obs, upper_obs
 
         # print(robot_pos)
         # print(robot_rot)
         # print(ball_pos)
-        print(
-            f'Robot Pos: {["{0:0.0f}".format(i) for i in robot_pos]} '
-            f'Robot Rot: {["{0:0.0f}".format(i) for i in robot_rot]} ',
-            f'Ball Pos: {["{0:0.0f}".format(i) for i in ball_pos[0]]}',
-            end='\r')
-        return [], []
+        # print(
+        #     f'Robot Pos: {["{0:0.0f}".format(i) for i in robot_pos]} '
+        #     f'Robot Rot: {["{0:0.0f}".format(i) for i in robot_rot]} ',
+        #     f'Ball Pos: {["{0:0.0f}".format(i) for i in ball_pos[0]]}',
+        #     end='\r')
+        # return [], []
 
     def _get_robot_coordinates(
             self,
@@ -103,12 +109,34 @@ class ImageProcesser():
 
     def _get_observations(
             self,
-            image,
             robot_pos,
             robot_rot,
             ball_pos,
-            ball_rot):
+            debug=False,
+            image=None):
         '''
         Create observation array for Brain server
         '''
-        pass
+        # ray_angles = get_ray_angles(
+        #     robot_rot,
+        #     self._angles[:])
+
+        # print(
+        #     f'ray_angles: {["{0:0.0f}".format(i[0]) for i in ray_angles]} ',
+        #     end='\r')
+
+        # sectors = create_sectors(robot_pos, self._angles[:], self._ray_length)
+
+        lineThickness = 2
+        pts = np.array([[10,5],[200,300],[70,20],[500,100]], np.int32)
+        pts = pts.reshape((-1,1,2))
+        cv2.polylines(image,[pts],True,(0,255,255))
+        # for ray in ray_angles:
+        #     cv2.line(image, (0, 0), (500, 500), (0, 255, 0), lineThickness)
+        cv2.imshow('Unity screen capture', image)
+        cv2.waitKey(1)
+
+        # lower_obs = get_observations_for_objects(ray_sectors, walls, ball, goal)
+        # upper_obs = get_observations_for_objects(ray_sectors, walls, [], goal)
+
+        return [], []
