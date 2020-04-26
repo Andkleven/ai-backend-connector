@@ -41,7 +41,10 @@ def _create_sector_vectors(local_origo, angles, ray_length):
 def create_sectors(robot_pos, robot_rot, angles, ray_length):
     local_origo = GameObject([robot_pos], (0, 255, 0), name="Robot origo")
     ray_angles = _get_ray_angles(robot_rot, angles)
-    sector_vectors = _create_sector_vectors(local_origo, ray_angles, ray_length)
+    sector_vectors = _create_sector_vectors(
+        local_origo,
+        ray_angles,
+        ray_length)
     sector_points_array = []
     sectors = []
 
@@ -52,7 +55,22 @@ def create_sectors(robot_pos, robot_rot, angles, ray_length):
             sector_vectors[i + 1].coords[1]])
 
     for sector_points in sector_points_array:
-        sectors.append(GameObject(sector_points, (0,255,255), name="sector"))
-        # sectors.append(Polygon(sector_points))
+        sectors.append(GameObject(sector_points, (0, 255, 255), name="sector"))
 
     return sectors
+
+
+def create_fat_rays(robot_pos, robot_rot, angles, ray_length, ray_width):
+    local_origo = GameObject([robot_pos], (0, 255, 0), name="Robot origo")
+    ray_angles = _get_ray_angles(robot_rot, angles)
+
+    thin_rays = []
+    for angle in ray_angles:
+        thin_ray = _create_line(local_origo.coords[0], angle, ray_length)
+        thin_ray_obj = GameObject(
+            [*thin_ray.coords],
+            (0, 255, 0),
+            buffer_distance=ray_width,
+            name="Thin ray")
+        thin_rays.append(thin_ray_obj)
+    return thin_rays

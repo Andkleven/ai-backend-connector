@@ -29,3 +29,9 @@ Now load the Unity Simulator's scene `PushBlockRobotBackendTest` and press Play
 ```sh
 python -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. ./proto/RobotBackendCommunication.proto
 ```
+
+
+## Calibrate camera
+```sh
+python -m computer_vision.camera_calibration -m=calibration -i=computer_vision/unity_camera_calibration/
+```

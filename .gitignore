@@ -6,6 +6,6 @@ __pycache__
 *.pdf
 
 
-computer_vision/unity_camera_calibration/*.png
+computer_vision/unity_camera_calibration/**/*.png
 
 *.whl

@@ -26,9 +26,9 @@ def get_aruco_marker_pos_and_rot(
     '''
     mtx = np.array(camera_calib_params["mtx"], dtype=np.float32)
     dist = np.array(camera_calib_params["dist"], dtype=np.float32)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     corners, detected_ids, rejected_img_points = aruco.detectMarkers(
-        gray,
+        image,
         aruco_dict,
         parameters=parameters)
 
@@ -49,7 +49,7 @@ def get_aruco_marker_pos_and_rot(
 
     # Show image showing the detected aruco markers
     if debug and tvecs is not None and rvecs is not None:
-        _drawDetectedMarkers(gray, corners, detected_ids, tvecs,
+        _drawDetectedMarkers(image, corners, detected_ids, tvecs,
                              rvecs, mtx, dist, length_of_axis,
                              rejected_img_points)
 
