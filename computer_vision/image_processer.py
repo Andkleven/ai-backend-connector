@@ -39,18 +39,18 @@ class ImageProcesser():
         self._low_ball_color = np.array([100, 100, 100], dtype=np.float32)
         self._high_ball_color = np.array([173, 255, 255], dtype=np.float32)
 
-        # self._angles = [-90, -60, -30, 0, 30, 60, 90]
+        # Angle order comes from Unity simulation's angle order
         self._angles = [0, -30, 30, -60, 60, -90, 90]
         self._ray_length = 500
 
         self._goal_objects = [GameObject(
-            [[0, 900], [1080, 900], [1080, 1080], [0, 1080]],
+            [[0, 885], [1080, 885], [1080, 1080], [0, 1080]],
             GREEN, name="goal")]
         self._wall_objects = [
-            GameObject([[0, 0], [0, 1080]], BLUE, name="wall"),
-            GameObject([[0, 1080], [1080, 1080]], BLUE, name="wall"),
-            GameObject([[1080, 1080], [1080, 0]], BLUE, name="wall"),
-            GameObject([[1080, 0], [0, 0]], BLUE, name="wall")
+            GameObject([[25, 25], [25, 1055]], BLUE, name="wall"),
+            GameObject([[25, 1055], [1055, 1055]], BLUE, name="wall"),
+            GameObject([[1055, 1055], [1055, 25]], BLUE, name="wall"),
+            GameObject([[1055, 25], [25, 25]], BLUE, name="wall")
         ]
 
     def image_to_observations(self, image):
@@ -60,12 +60,15 @@ class ImageProcesser():
             debug=False)  # self._debug)
 
         if robot_pos is None or len(robot_pos) == 0:
-            print("Could not locate robot's Aruco marker")
+            print("Could not locate robot's Aruco marker", end='')
             return [], []
 
         ball_pos = self._get_ball_coordinates(
             image=image,
             debug=False)  # self._debug)
+        if ball_pos is None or len(ball_pos) == 0:
+            print("Could not locate ball", end='')
+            return [], []
 
         lower_obs, upper_obs = self._get_observations(
             robot_pos=robot_pos,
@@ -73,15 +76,6 @@ class ImageProcesser():
             ball_pos=ball_pos,
             debug=self._debug,
             image=image)
-
-        # print(
-        #     f'Robot Pos: {["{0:0.0f}".format(i) for i in robot_pos]} '
-        #     f'Robot Rot: {["{0:0.0f}".format(i) for i in robot_rot]} '
-        #     f'Ball Pos: {["{0:0.0f}".format(i) for i in ball_pos[0]]}')
-        # end='\r')
-        # print(
-        #     f'lower_obs: {["{0:0.0f}".format(i) for i in lower_obs]}\n'
-        #     f'upper_obs: {["{0:0.0f}".format(i) for i in upper_obs]}')
 
         return lower_obs, upper_obs
 

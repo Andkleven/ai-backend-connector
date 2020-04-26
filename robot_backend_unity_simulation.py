@@ -24,13 +24,9 @@ CALIBRATION_PARAMS_FILE = 'computer_vision/unity_camera_calibration/calib-params
 DEBUG = True
 
 
-def show_image():
-    jpg_as_np = np.frombuffer(response.image, dtype=np.uint8)
-    frame = cv2.imdecode(jpg_as_np, flags=1)
-
-    # display processed video
-    cv2.imshow('Processed Image', frame)
-    cv2.waitKey(1)
+def decode_image(image):
+    image = np.frombuffer(image, dtype=np.uint8)
+    return cv2.imdecode(image, flags=1)
 
 
 def main(_):
@@ -51,12 +47,14 @@ def main(_):
     try:
         while True:
             image = unity_sim.get_screen_capture(CAPTURE_WIDTH, CAPTURE_HEIGHT)
-            image = np.frombuffer(image, dtype=np.uint8)
-            image = cv2.imdecode(image, flags=1)
+            image = decode_image(image)
             lower_obs, upper_obs = image_processer.image_to_observations(image)
+            if len(lower_obs) is 0 or len(upper_obs) is 0:
+                print('No observations', end='\r')
+                continue
             action = brain_server.get_action(lower_obs, upper_obs)
-            print(f'action: {action}')
             status = unity_sim.make_action(action)
+            print('Working', end='\r')
 
     except KeyboardInterrupt:
         print("Exiting")
