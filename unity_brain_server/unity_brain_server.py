@@ -22,3 +22,41 @@ class UnityBrainServer(rsc_pb2_grpc.BrainServerServicer):
             upperObservations=upper_observations)
         brain_res = self._stub.GetAction(brain_req)
         return brain_res.action
+
+
+# For testing
+# Run this with "python -m unity_brain_server.unity_brain_server"
+# From the project's root folder
+def main(_):
+    '''
+    Connect to IP cam and print results
+    '''
+    brain_server = UnityBrainServer(
+        host_ip="localhost",
+        port="50052")
+
+    try:
+        while True:
+            lower_obs = [0] * 35
+            upper_obs = [0] * 35
+            response = brain_server.get_action(lower_obs, upper_obs)
+            print(f'Got action:{response}')
+
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        print("Exiting")
+
+
+if __name__ == "__main__":
+    from absl import app
+    from absl import flags
+    # from utils import parse_options
+
+    flags.DEFINE_string(
+        "params_file",
+        "params.yaml",
+        "Specify the path to params.yaml file",
+        short_name="p")
+
+    FLAGS = flags.FLAGS
+    app.run(main)

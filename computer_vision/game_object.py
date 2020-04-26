@@ -61,11 +61,9 @@ class GameObject():
     def coords(self):
         return self._geometry.coords
 
-    def distance(self, other_game_object):
-        return self._geometry.distance(other_game_object.geometry)
-
-    def intersection(self, other_game_object):
-        return self._geometry.intersection(other_game_object.geometry)
+    def distance(self, other_game_object, sector):
+        hit_point = sector.geometry.intersection(other_game_object.geometry)
+        return self._geometry.distance(hit_point)
 
     def intersects(self, other_game_object):
         return self._geometry.intersects(other_game_object.geometry)

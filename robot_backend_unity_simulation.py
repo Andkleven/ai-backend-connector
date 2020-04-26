@@ -44,20 +44,19 @@ def main(_):
         ROBOT_ARUCO_CODE,
         CALIBRATION_PARAMS_FILE,
         debug=DEBUG)
-    # brain_server = UnityBrainServer(
-    #     host_ip="localhost",
-    #     port="50052")
+    brain_server = UnityBrainServer(
+        host_ip="localhost",
+        port="50052")
 
     try:
         while True:
             image = unity_sim.get_screen_capture(CAPTURE_WIDTH, CAPTURE_HEIGHT)
             image = np.frombuffer(image, dtype=np.uint8)
             image = cv2.imdecode(image, flags=1)
-            # cv2.imshow('Unity screen capture', image)
-            # cv2.waitKey(1)
             lower_obs, upper_obs = image_processer.image_to_observations(image)
-            # action = brain_server.get_action(lower_obs, upper_obs)
-            # status = unity_sim.make_action(action)
+            action = brain_server.get_action(lower_obs, upper_obs)
+            print(f'action: {action}')
+            status = unity_sim.make_action(action)
 
     except KeyboardInterrupt:
         print("Exiting")

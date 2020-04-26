@@ -26,7 +26,7 @@ def get_observations_for_objects(
             for obj in object_group:
                 intersects = sector.intersects(obj)
                 if intersects is True:
-                    new_dist = robot_point.distance(obj) / ray_length
+                    new_dist = robot_point.distance(obj, sector) / ray_length
                     if (
                         new_dist < sector_obs[
                             len(sector_obs) - 1] or
@@ -43,31 +43,33 @@ def get_observations_for_objects(
 
 def print_observations(
         obs,
+        angles,
         return_string=False,
         include_raw=True):
     if obs:
-        obs[::5] = ['%.0f' % elem for elem in obs[::5]]
-        obs[1::5] = ['%.0f' % elem for elem in obs[1::5]]
-        obs[2::5] = ['%.0f' % elem for elem in obs[2::5]]
-        obs[3::5] = ['%.0f' % elem for elem in obs[3::5]]
-        obs[4::5] = ['%.2f' % elem for elem in obs[4::5]]
-    obs_string = "==== Sector 0: {} | 90 right\n".format(
-        obs[0:5] if obs else "")
-    obs_string += "==== Sector 1: {} | 45 right\n".format(
-        obs[5:10] if obs else "")
-    obs_string += "==== Sector 2: {} | 20 right\n".format(
-        obs[10:15] if obs else "")
-    obs_string += "==== Sector 3: {} | forward\n".format(
-        obs[15:20] if obs else "")
-    obs_string += "==== Sector 4: {} | 20 left\n".format(
-        obs[20:25] if obs else "")
-    obs_string += "==== Sector 5: {} | 45 left\n".format(
-        obs[25:30] if obs else"")
-    obs_string += "==== Sector 6: {} | 90 left\n".format(
-        obs[30:35] if obs else "")
+        obs_temp = obs[:]
+        obs_temp[::5] = ['%.0f' % elem for elem in obs_temp[::5]]
+        obs_temp[1::5] = ['%.0f' % elem for elem in obs_temp[1::5]]
+        obs_temp[2::5] = ['%.0f' % elem for elem in obs_temp[2::5]]
+        obs_temp[3::5] = ['%.0f' % elem for elem in obs_temp[3::5]]
+        obs_temp[4::5] = ['%.2f' % elem for elem in obs_temp[4::5]]
+    obs_string = "==== Sector 0: {} | {}\n".format(
+        obs_temp[0:5] if obs_temp else "", angles[0])
+    obs_string += "==== Sector 1: {} | {}\n".format(
+        obs_temp[5:10] if obs_temp else "", angles[1])
+    obs_string += "==== Sector 2: {} | {}\n".format(
+        obs_temp[10:15] if obs_temp else "", angles[2])
+    obs_string += "==== Sector 3: {} | {}\n".format(
+        obs_temp[15:20] if obs_temp else "", angles[3])
+    obs_string += "==== Sector 4: {} | {}\n".format(
+        obs_temp[20:25] if obs_temp else "", angles[4])
+    obs_string += "==== Sector 5: {} | {}\n".format(
+        obs_temp[25:30] if obs_temp else"", angles[5])
+    obs_string += "==== Sector 6: {} | {}\n".format(
+        obs_temp[30:35] if obs_temp else "", angles[6])
 
     if include_raw:
-        obs_string += "==== Raw observation\n{}\n".format(obs)
+        obs_string += "==== Raw observation\n{}\n".format(obs_temp)
 
     if return_string:
         return obs_string

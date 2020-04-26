@@ -39,17 +39,18 @@ class ImageProcesser():
         self._low_ball_color = np.array([100, 100, 100], dtype=np.float32)
         self._high_ball_color = np.array([173, 255, 255], dtype=np.float32)
 
-        self._angles = [-90, -45, -20, 0, 20, 45, 90]
-        self._ray_length = 400
+        # self._angles = [-90, -60, -30, 0, 30, 60, 90]
+        self._angles = [0, -30, 30, -60, 60, -90, 90]
+        self._ray_length = 500
 
         self._goal_objects = [GameObject(
             [[0, 900], [1080, 900], [1080, 1080], [0, 1080]],
-            GREEN)]
+            GREEN, name="goal")]
         self._wall_objects = [
-            GameObject([[0, 0], [0, 1080]], BLUE),
-            GameObject([[0, 1080], [1080, 1080]], BLUE),
-            GameObject([[1080, 1080], [1080, 0]], BLUE),
-            GameObject([[1080, 0], [0, 0]], BLUE)
+            GameObject([[0, 0], [0, 1080]], BLUE, name="wall"),
+            GameObject([[0, 1080], [1080, 1080]], BLUE, name="wall"),
+            GameObject([[1080, 1080], [1080, 0]], BLUE, name="wall"),
+            GameObject([[1080, 0], [0, 0]], BLUE, name="wall")
         ]
 
     def image_to_observations(self, image):
@@ -73,18 +74,14 @@ class ImageProcesser():
             debug=self._debug,
             image=image)
 
-        print(
-            f'Robot Pos: {["{0:0.0f}".format(i) for i in robot_pos]} '
-            f'Robot Rot: {["{0:0.0f}".format(i) for i in robot_rot]} '
-            f'Ball Pos: {["{0:0.0f}".format(i) for i in ball_pos[0]]}')
+        # print(
+        #     f'Robot Pos: {["{0:0.0f}".format(i) for i in robot_pos]} '
+        #     f'Robot Rot: {["{0:0.0f}".format(i) for i in robot_rot]} '
+        #     f'Ball Pos: {["{0:0.0f}".format(i) for i in ball_pos[0]]}')
         # end='\r')
         # print(
         #     f'lower_obs: {["{0:0.0f}".format(i) for i in lower_obs]}\n'
         #     f'upper_obs: {["{0:0.0f}".format(i) for i in upper_obs]}')
-        lower_obs_str = print_observations(lower_obs, return_string=True)
-        print(lower_obs_str)
-        upper_obs_str = print_observations(upper_obs, return_string=True)
-        print(upper_obs_str)
 
         return lower_obs, upper_obs
 
@@ -135,7 +132,16 @@ class ImageProcesser():
             cv2.imshow('Ball Coordinates', image)
         return ball_coordinates
 
-    def _visualize_scene(self, image, robot, ball, sectors, goals, walls):
+    def _visualize_scene(
+            self,
+            image,
+            robot,
+            ball,
+            sectors,
+            goals,
+            walls,
+            lower_obs,
+            upper_obs):
         robot.draw_object_on_image(image)
         ball.draw_object_on_image(image)
 
@@ -147,6 +153,26 @@ class ImageProcesser():
 
         for wall in walls:
             wall.draw_object_on_image(image)
+
+        lower_obs_str = print_observations(
+            lower_obs,
+            self._angles,
+            return_string=True,
+            include_raw=False)
+        y0, dy = 50, 25
+        for i, line in enumerate(lower_obs_str.split('\n')):
+            y = y0 + i*dy
+            cv2.putText(image, line, (50, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 3)
+        upper_obs_str = print_observations(
+            upper_obs,
+            self._angles,
+            return_string=True,
+            include_raw=False)
+
+        y0, dy = 500, 25
+        for i, line in enumerate(upper_obs_str.split('\n')):
+            y = y0 + i*dy
+            cv2.putText(image, line, (50, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 3)
 
         cv2.imshow('Unity screen capture', image)
         cv2.waitKey(1)
@@ -203,6 +229,8 @@ class ImageProcesser():
             ball_object,
             sectors,
             self._goal_objects,
-            self._wall_objects)
+            self._wall_objects,
+            lower_obs,
+            upper_obs)
 
         return lower_obs, upper_obs
