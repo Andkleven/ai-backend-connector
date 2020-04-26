@@ -7,3 +7,5 @@ __pycache__
 
 
 computer_vision/unity_camera_calibration/*.png
+
+*.whl

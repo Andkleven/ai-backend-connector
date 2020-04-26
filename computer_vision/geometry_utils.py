@@ -7,6 +7,17 @@ from math import cos
 from math import sin
 from math import pi
 
+from computer_vision.game_object import GameObject
+
+
+def _get_ray_angles(robot_rotation, angles):
+    local_rotation = robot_rotation - 90
+    ray_angles = angles
+    for i in range(len(ray_angles)):
+        ray_angles[i] = ray_angles[i] - local_rotation + 90
+
+    return ray_angles
+
 
 def _create_line(coordinates, angle, dist):
     angle = angle * pi / 180.0
@@ -27,8 +38,10 @@ def _create_sector_vectors(local_origo, angles, ray_length):
     return sector_vectors
 
 
-def create_sectors(local_origo, angles, ray_length):
-    sector_vectors = _create_sector_vectors(local_origo, angles, ray_length)
+def create_sectors(robot_pos, robot_rot, angles, ray_length):
+    local_origo = GameObject([robot_pos], (0, 255, 0), name="Robot origo")
+    ray_angles = _get_ray_angles(robot_rot, angles)
+    sector_vectors = _create_sector_vectors(local_origo, ray_angles, ray_length)
     sector_points_array = []
     sectors = []
 
@@ -39,15 +52,7 @@ def create_sectors(local_origo, angles, ray_length):
             sector_vectors[i + 1].coords[1]])
 
     for sector_points in sector_points_array:
-        sectors.append(Polygon(sector_points))
+        sectors.append(GameObject(sector_points, (0,255,255), name="sector"))
+        # sectors.append(Polygon(sector_points))
 
     return sectors
-
-
-def get_ray_angles(robot_rotation, angles):
-    local_rotation = robot_rotation - 90
-    ray_angles = angles
-    for i in range(len(ray_angles)):
-        ray_angles[i] = ray_angles[i] - local_rotation + 90
-
-    return ray_angles

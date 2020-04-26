@@ -17,11 +17,11 @@ from unity_brain_server.unity_brain_server import UnityBrainServer
 from computer_vision.image_processer import ImageProcesser
 
 
-CAPTURE_WIDTH = 1080
-CAPTURE_HEIGHT = 1080
+CAPTURE_WIDTH = 512
+CAPTURE_HEIGHT = 512
 ROBOT_ARUCO_CODE = 1
 CALIBRATION_PARAMS_FILE = 'computer_vision/unity_camera_calibration/calib-params.json'
-DEBUG = False
+DEBUG = True
 
 
 def show_image():
