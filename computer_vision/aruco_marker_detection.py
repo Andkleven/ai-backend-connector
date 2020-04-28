@@ -11,7 +11,6 @@ def get_aruco_marker_pos_and_rot(
         parameters,
         camera_calib_params,
         size_of_marker,
-        debug=False,
         only_z_rot=True,
         length_of_axis=0.05):
     '''
@@ -48,7 +47,7 @@ def get_aruco_marker_pos_and_rot(
         only_z_rot=only_z_rot)
 
     # Show image showing the detected aruco markers
-    if debug and tvecs is not None and rvecs is not None:
+    if tvecs is not None and rvecs is not None:
         _drawDetectedMarkers(image, corners, detected_ids, tvecs,
                              rvecs, mtx, dist, length_of_axis,
                              rejected_img_points)
@@ -86,7 +85,7 @@ def _get_aruco_pos_and_rot(
     if (detected_ids is None or
             corners is None or
             rvecs is None):
-        return [], []
+        return None, None
 
     robot_pos = None
     robot_rot = None
@@ -167,8 +166,7 @@ def _drawDetectedMarkers(
     Draw Squares around detected aruco markers
     Draw the rejected aruco markers candidates
     """
-    debug_image = image.copy()
-    imaxis = aruco.drawDetectedMarkers(debug_image, corners, detected_ids)
+    imaxis = aruco.drawDetectedMarkers(image, corners, detected_ids)
     for i in range(len(tvecs)):
         imaxis = aruco.drawAxis(
             imaxis,
@@ -178,9 +176,8 @@ def _drawDetectedMarkers(
             tvecs[i],
             length_of_axis)
 
-    aruco.drawDetectedMarkers(debug_image, corners, detected_ids)
+    aruco.drawDetectedMarkers(image, corners, detected_ids)
     aruco.drawDetectedMarkers(
-        debug_image,
+        image,
         rejected_img_points,
         borderColor=(100, 0, 240))
-    cv2.imshow('Detect Acuro Marker', debug_image)

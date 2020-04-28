@@ -22,11 +22,20 @@ BLACK = (0, 0, 0)
 YELLOW = (0, 255, 255)
 RED = (0, 0, 255)
 
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 0.7
+FONT_THICKNESS = 2
+FONT_DEFAULT_COLOR = (0, 0, 255)
+
+# LOW_COLOR = [100, 100, 100]  # For simulation
+# HIGH_COLOR = [173, 255, 255]  # For simulation
+LOW_COLOR = [160, 90, 20]  # For real life
+HIGH_COLOR = [180, 255, 255]  # For real life
+
 
 class ImageProcesser():
-    def __init__(self, aruco_code, calibration_params_file, debug):
+    def __init__(self, aruco_code, calibration_params_file):
         self._aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
-        self._debug = debug
         self._aruco_code = aruco_code
         self._parameters = aruco.DetectorParameters_create()
         self._camera_calib_params = None
@@ -36,8 +45,8 @@ class ImageProcesser():
 
         # Value ranges for HSV-values in OpenCV
         # H: 0-179, S: 0-255, V: 0-255
-        self._low_ball_color = np.array([100, 100, 100], dtype=np.float32)
-        self._high_ball_color = np.array([173, 255, 255], dtype=np.float32)
+        self._low_ball_color = np.array(LOW_COLOR, dtype=np.float32)
+        self._high_ball_color = np.array(HIGH_COLOR, dtype=np.float32)
 
         # Angle order comes from Unity simulation's angle order
         self._angles = [0, -30, 30, -60, 60, -90, 90]
@@ -50,42 +59,46 @@ class ImageProcesser():
             GameObject([[25, 25], [25, 1055]], BLUE, name="wall"),
             GameObject([[25, 1055], [1055, 1055]], BLUE, name="wall"),
             GameObject([[1055, 1055], [1055, 25]], BLUE, name="wall"),
-            GameObject([[1055, 25], [25, 25]], BLUE, name="wall")
-        ]
+            GameObject([[1055, 25], [25, 25]], BLUE, name="wall")]
 
     def image_to_observations(self, image):
-        robot_pos, robot_rot = self._get_robot_coordinates(
-            image=image,
-            aruco_code=self._aruco_code,
-            debug=False)  # self._debug)
+        self._visualize_item(image, *self._wall_objects)
+        self._visualize_item(image, *self._goal_objects)
 
-        if robot_pos is None or len(robot_pos) == 0:
-            print("Could not locate robot's Aruco marker", end='')
+        robot_obj = self._get_robot_object(
+            image=image,
+            aruco_code=self._aruco_code)
+
+        if robot_obj is None:
+            warning = "Could not locate robot's Aruco marker"
+            print(warning, end='')
+            self._visualize_item(image, warning, text_pos=(50, 50))
+            self._show_visualizations(image)
             return [], []
 
-        ball_pos = self._get_ball_coordinates(
-            image=image,
-            debug=False)  # self._debug)
-        if ball_pos is None or len(ball_pos) == 0:
-            print("Could not locate ball", end='')
+        ball_objs = self._get_ball_objects(image=image)
+        if ball_objs is None:
+            warning = "Could not locate ball"
+            print(warning, end='')
+            self._visualize_item(image, warning, text_pos=(50, 50))
+            self._show_visualizations(image)
             return [], []
 
         lower_obs, upper_obs = self._get_observations(
-            robot_pos=robot_pos,
-            robot_rot=robot_rot,
-            ball_pos=ball_pos,
-            debug=self._debug,
+            robot_obj=robot_obj,
+            ball_objs=ball_objs,
             image=image)
+
+        self._show_visualizations(image)
 
         return lower_obs, upper_obs
 
-    def _get_robot_coordinates(
+    def _get_robot_object(
             self,
             image,
-            aruco_code,
-            debug=False):
+            aruco_code):
         '''
-        Detect aruco markers from given image and return robot coordinates
+        Detect aruco markers from given image and return robot game object
         '''
         if image is None:
             return None
@@ -96,12 +109,17 @@ class ImageProcesser():
             aruco_dict=self._aruco_dict,
             parameters=self._parameters,
             camera_calib_params=self._camera_calib_params,
-            size_of_marker=self._size_of_marker,
-            debug=debug)
+            size_of_marker=self._size_of_marker)
 
-        return robot_pos, robot_rot
+        if robot_pos is not None:
+            robot_obj = GameObject([robot_pos], RED, rotation=robot_rot, name="Robot")
+            self._visualize_item(image, robot_obj)
+        else:
+            robot_obj = None
 
-    def _get_ball_coordinates(self, image, debug=False):
+        return robot_obj
+
+    def _get_ball_objects(self, image):
         if image is None:
             return None
 
@@ -115,68 +133,42 @@ class ImageProcesser():
 
         ball_coordinates = find_center_points(ball_mask)
 
-        if debug:
-            cv2.imshow('ball_mask', ball_mask)
-            cv2.waitKey(1)
+        if ball_coordinates is not None:
+            ball_objs = [
+                GameObject(ball, BLACK, buffer_distance=50, name="Ball")
+                for ball in ball_coordinates]
+            self._visualize_item(
+                image,
+                *ball_objs)
+        else:
+            ball_objs = None
 
-            for coordinate in ball_coordinates:
-                cv2.circle(image, (
-                    coordinate[0],
-                    coordinate[1]), 5, (0, 0, 255), -1)
-            cv2.imshow('Ball Coordinates', image)
-        return ball_coordinates
+        return ball_objs
 
-    def _visualize_scene(
-            self,
-            image,
-            robot,
-            ball,
-            sectors,
-            goals,
-            walls,
-            lower_obs,
-            upper_obs):
-        robot.draw_object_on_image(image)
-        ball.draw_object_on_image(image)
+    def _visualize_item(self, image, *args, **kwargs):
+        for item in args:
+            if isinstance(item, GameObject):
+                item.draw_object_on_image(image)
+            elif isinstance(item, str):
+                if 'text_color' in kwargs:
+                    text_color = kwargs['text_color']
+                else:
+                    text_color = FONT_DEFAULT_COLOR
+                for i, line in enumerate(item.split('\n')):
+                    x, y0, dy = kwargs['text_pos'][0], kwargs['text_pos'][1], 25
+                    y = y0 + i*dy
+                    cv2.putText(
+                        image, line, (x, y), FONT, FONT_SCALE,
+                        text_color, FONT_THICKNESS)
 
-        for sector in sectors:
-            sector.draw_object_on_image(image)
-
-        for goal in goals:
-            goal.draw_object_on_image(image)
-
-        for wall in walls:
-            wall.draw_object_on_image(image)
-
-        lower_obs_str = print_observations(
-            lower_obs,
-            self._angles,
-            return_string=True,
-            include_raw=False)
-        y0, dy = 50, 25
-        for i, line in enumerate(lower_obs_str.split('\n')):
-            y = y0 + i*dy
-            cv2.putText(image, line, (50, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 3)
-        upper_obs_str = print_observations(
-            upper_obs,
-            self._angles,
-            return_string=True,
-            include_raw=False)
-
-        y0, dy = 500, 25
-        for i, line in enumerate(upper_obs_str.split('\n')):
-            y = y0 + i*dy
-            cv2.putText(image, line, (50, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 3)
-
-        cv2.imshow('Unity screen capture', image)
+    def _show_visualizations(self, image):
+        cv2.imshow('Game', image)
         cv2.waitKey(1)
 
     def _get_observations(
             self,
-            robot_pos,
-            robot_rot,
-            ball_pos,
-            debug=False,
+            robot_obj,
+            ball_objs,
             image=None):
         '''
         Create observation array for Brain server
@@ -188,21 +180,17 @@ class ImageProcesser():
         #     self._ray_length)
 
         sectors = create_fat_rays(
-            robot_pos,
-            robot_rot,
+            robot_obj,
             self._angles[:],
             self._ray_length,
             20)
 
-        robot_point = GameObject([robot_pos], RED)
-        ball_object = GameObject(ball_pos, BLACK, buffer_distance=50)
-
         objects_for_detection = [
-            [ball_object],
+            ball_objs,
             self._goal_objects,
             self._wall_objects]
         lower_obs = get_observations_for_objects(
-            robot_point,
+            robot_obj,
             sectors,
             self._ray_length,
             objects_for_detection)
@@ -212,19 +200,25 @@ class ImageProcesser():
             self._goal_objects,
             self._wall_objects]
         upper_obs = get_observations_for_objects(
-            robot_point,
+            robot_obj,
             sectors,
             self._ray_length,
             objects_for_detection)
 
-        self._visualize_scene(
-            image,
-            robot_point,
-            ball_object,
-            sectors,
-            self._goal_objects,
-            self._wall_objects,
+        lower_obs_str = print_observations(
             lower_obs,
-            upper_obs)
+            self._angles,
+            return_string=True,
+            include_raw=False)
+
+        upper_obs_str = print_observations(
+            upper_obs,
+            self._angles,
+            return_string=True,
+            include_raw=False)
+
+        self._visualize_item(image, *sectors)
+        self._visualize_item(image, lower_obs_str, text_pos=(50, 50))
+        self._visualize_item(image, upper_obs_str, text_pos=(50, 350))
 
         return lower_obs, upper_obs

@@ -12,14 +12,16 @@ from multiprocessing import Process
 import proto.RobotSystemCommunication_pb2 as rsc_pb2
 import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
 
-from unity_simulation.unity_simulation import UnitySimulation
+from robot_frontend.robot_frontend import RobotFrontend
+from reallife_camera_source.gstreamer_video_sink import GStreamerVideoSink
 from unity_brain_server.unity_brain_server import UnityBrainServer
 from computer_vision.image_processer import ImageProcesser
 
 
+VIDEO_PORT = 5200
 CAPTURE_WIDTH = 1080
 CAPTURE_HEIGHT = 1080
-ROBOT_ARUCO_CODE = 1
+ROBOT_ARUCO_CODE = 2
 CALIBRATION_PARAMS_FILE = 'computer_vision/unity_camera_calibration/calib-params.json'
 
 
@@ -32,29 +34,35 @@ def main(_):
     '''
     Connect to IP cam and print results
     '''
-    unity_sim = UnitySimulation(
-        host_ip="localhost",
-        port="50051")
+    image_source = GStreamerVideoSink(port=VIDEO_PORT)
     image_processer = ImageProcesser(
         ROBOT_ARUCO_CODE,
         CALIBRATION_PARAMS_FILE)
     brain_server = UnityBrainServer(
         host_ip="localhost",
         port="50052")
+    robot_frontend = RobotFrontend(
+        robot_ip="192.168.10.38",
+        port=50053)
 
     try:
         while True:
-            image = unity_sim.get_screen_capture(CAPTURE_WIDTH, CAPTURE_HEIGHT)
-            image = decode_image(image)
+            if not image_source.frame_available():
+                continue
+            image = image_source.frame()
             lower_obs, upper_obs = image_processer.image_to_observations(image)
             if len(lower_obs) is 0 or len(upper_obs) is 0:
                 print('No observations', end='\r')
+                status = robot_frontend.make_action(0)
                 continue
             action = brain_server.get_action(lower_obs, upper_obs)
-            status = unity_sim.make_action(action)
-            print('Working', end='\r')
+            status = robot_frontend.make_action(action)
+            print(f' Working, status: {status}', end='\r')
 
     except KeyboardInterrupt:
+        print("Keyboard Interrupt")
+    finally:
+        status = robot_frontend.make_action(0)
         print("Exiting")
 
 

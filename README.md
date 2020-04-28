@@ -35,3 +35,9 @@ python -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. ./
 ```sh
 python -m computer_vision.camera_calibration -m=calibration -i=computer_vision/unity_camera_calibration/
 ```
+
+## Raspberry Pi camera
+Run the following in the raspberry pi camera to send video stream to IP 192.168.10.56
+```sh
+gst-launch-1.0 rpicamsrc bitrate=1700000 sensor-mode=4 ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.10.56 port=5200
+```
