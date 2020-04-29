@@ -46,30 +46,30 @@ def print_observations(
         angles,
         return_string=False,
         include_raw=True):
-    if obs:
-        obs_temp = obs[:]
-        obs_temp[::5] = ['%.0f' % elem for elem in obs_temp[::5]]
-        obs_temp[1::5] = ['%.0f' % elem for elem in obs_temp[1::5]]
-        obs_temp[2::5] = ['%.0f' % elem for elem in obs_temp[2::5]]
-        obs_temp[3::5] = ['%.0f' % elem for elem in obs_temp[3::5]]
-        obs_temp[4::5] = ['%.2f' % elem for elem in obs_temp[4::5]]
-    obs_string = "==== Sector 0: {} | {}\n".format(
-        obs_temp[0:5] if obs_temp else "", angles[0])
-    obs_string += "==== Sector 1: {} | {}\n".format(
-        obs_temp[5:10] if obs_temp else "", angles[1])
-    obs_string += "==== Sector 2: {} | {}\n".format(
-        obs_temp[10:15] if obs_temp else "", angles[2])
-    obs_string += "==== Sector 3: {} | {}\n".format(
-        obs_temp[15:20] if obs_temp else "", angles[3])
-    obs_string += "==== Sector 4: {} | {}\n".format(
-        obs_temp[20:25] if obs_temp else "", angles[4])
-    obs_string += "==== Sector 5: {} | {}\n".format(
-        obs_temp[25:30] if obs_temp else"", angles[5])
-    obs_string += "==== Sector 6: {} | {}\n".format(
-        obs_temp[30:35] if obs_temp else "", angles[6])
+    if obs is None:
+        return "No observations"
+
+    obs_temp = obs[:]
+    obs_per_sector = int(len(obs_temp) / len(angles))
+
+    # Format float observations to int 0 or 1. The last observation
+    # is distance which is shown as a float with 2 decimals
+    for i in range(obs_per_sector):
+        if i == (obs_per_sector - 1):
+            obs_temp[i::obs_per_sector] = \
+                ['%.2f' % elem for elem in obs_temp[i::obs_per_sector]]
+        else:
+            obs_temp[i::obs_per_sector] = \
+                ['%.0f' % elem for elem in obs_temp[i::obs_per_sector]]
+
+    obs_string = ""
+    for i in range(len(angles)):
+        start = i * obs_per_sector
+        stop = (i + 1) * obs_per_sector
+        obs_string += f'Sector {angles[i]:+>3} | {obs_temp[start:stop]}\n'
 
     if include_raw:
-        obs_string += "==== Raw observation\n{}\n".format(obs_temp)
+        obs_string += f'==== Raw observation\n{obs_temp}\n'
 
     if return_string:
         return obs_string

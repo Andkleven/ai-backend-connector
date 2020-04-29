@@ -210,12 +210,18 @@ class ImageProcesser():
             self._angles,
             return_string=True,
             include_raw=False)
+        lower_obs_str = \
+            'Lower obs\n| Ball | Goal | Wall | Nothing | Distance |\n' \
+            f'{lower_obs_str}'
 
         upper_obs_str = print_observations(
             upper_obs,
             self._angles,
             return_string=True,
             include_raw=False)
+        upper_obs_str = \
+            'Upper obs\n| Ball | Goal | Wall | Nothing | Distance |\n' \
+            f'{upper_obs_str}'
 
         self._visualize_item(image, *sectors)
         self._visualize_item(image, lower_obs_str, text_pos=(50, 50))
