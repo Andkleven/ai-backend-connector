@@ -30,6 +30,8 @@ class GStreamerVideoSink():
         Gst.init(None)
 
         self.port = port
+        self._width = 1080
+        self._height = 1080
         self._frame = None
         self._mutex = Lock()
 
@@ -108,6 +110,9 @@ class GStreamerVideoSink():
         image = image[starty:stopy, startx:stopx, :]
         return image
 
+    def _resize(self, image, width, height):
+        return cv2.resize(image, (width, height))
+
     def frame(self):
         """ Get Frame
         Returns:
@@ -144,6 +149,7 @@ class GStreamerVideoSink():
         sample = sink.emit('pull-sample')
         new_frame = self._gst_to_opencv(sample)
         new_frame = self._crop_center(new_frame, 1080, 1080)
+        # new_frame = self._resize(new_frame, self._width, self._height)
         with self._mutex:
             self._frame = new_frame
 

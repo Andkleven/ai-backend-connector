@@ -19,8 +19,8 @@ from computer_vision.image_processer import ImageProcesser
 
 
 VIDEO_PORT = 5200
-CAPTURE_WIDTH = 1080
-CAPTURE_HEIGHT = 1080
+# CAPTURE_WIDTH = 1080
+# CAPTURE_HEIGHT = 1080
 ROBOT_ARUCO_CODE = 2
 CALIBRATION_PARAMS_FILE = 'computer_vision/unity_camera_calibration/calib-params.json'
 
