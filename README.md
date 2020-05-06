@@ -11,6 +11,14 @@ Create Python virtual environment if you want.
 `python -m venv venv`
 `venv\Scripts\Activate`
 
+## Link Gstreamer packages to virtual environment in Linux
+If you are using virtual environment in Linux, link the gi Python package from system's Python to the virtual environment's Python 
+[Gist](https://gist.github.com/jegger/10003813)
+```
+cd venv/lib/python3.6/site-packages
+ln -s /usr/lib/python3/dist-packages/gi
+cd ../../../..
+```
 
 ## Install Python packages
 `pip install -r requirements.txt`

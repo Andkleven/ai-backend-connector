@@ -42,7 +42,7 @@ def main(_):
         host_ip="localhost",
         port="50052")
     robot_frontend = RobotFrontend(
-        robot_ip="192.168.10.38",
+        robot_ip="192.168.10.64",
         port=50053)
 
     try:

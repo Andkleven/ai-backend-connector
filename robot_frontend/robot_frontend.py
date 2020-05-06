@@ -12,7 +12,7 @@ class RobotFrontend:
             '{}:{}'.format(self._robot_ip, self._robot_port))
         self._stub = rsc_pb2_grpc.RobotFrontendStub(self._channel)
 
-        self._robot_speed = 115
+        self._robot_speed = 150
         self._turn_speed = 1
 
     def _get_motor_speeds(self, action):

@@ -32,6 +32,8 @@ FONT_DEFAULT_COLOR = (0, 0, 255)
 LOW_COLOR = [160, 90, 20]  # For real life
 HIGH_COLOR = [180, 255, 255]  # For real life
 
+BALL_RADIUS = 25
+
 
 class ImageProcesser():
     def __init__(self, aruco_code, calibration_params_file):
@@ -135,7 +137,7 @@ class ImageProcesser():
 
         if ball_coordinates is not None:
             ball_objs = [
-                GameObject(ball, BLACK, buffer_distance=50, name="Ball")
+                GameObject(ball, BLACK, buffer_distance=BALL_RADIUS, name="Ball")
                 for ball in ball_coordinates]
             self._visualize_item(
                 image,
