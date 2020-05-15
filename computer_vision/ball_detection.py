@@ -5,7 +5,7 @@ import numpy as np
 
 # TODO: Make this a variable coming from main program
 # min_ball_area_to_detect = 5000  # For simulation
-min_ball_area_to_detect = 300
+min_ball_area_to_detect = 100 # 300
 iterations = 2
 
 

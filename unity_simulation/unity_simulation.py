@@ -12,31 +12,42 @@ import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
 
 
 class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
-    def __init__(self, host_ip, port):
-        self._host_ip = host_ip
-        self._port = port
+    def __init__(self, params):
+        self._params = params
+        self._host_ip = params["simulation"]["ip"]
+        self._port = params["simulation"]["port"]
+        self._capture_width = params["simulation"]["capture_width"]
+        self._capture_height = params["simulation"]["capture_height"]
+        self._jpeg_quality = params["simulation"]["jpeg_quality"]
+        if params["simulation"]["image_type"] == "JPG":
+            self._image_type = rsc_pb2.JPG
+        elif params["simulation"]["image_type"] == "PNG":
+            self._image_type = rsc_pb2.PNG
+        else:
+            raise Exception(
+                '\n===\nUnidentified capture image tupe: '
+                f'{params["simulation"]["image_type"]}\n===\n')
+
         self._channel = grpc.insecure_channel(
             '{}:{}'.format(self._host_ip, self._port))
         self._stub = rsc_pb2_grpc.SimulationServerStub(self._channel)
 
-    def get_screen_capture(
-            self,
-            capture_width,
-            capture_height,
-            image_type=rsc_pb2.JPG,
-            jpeg_quality=75):
+    def _decode_image(self, image):
+        image = np.frombuffer(image, dtype=np.uint8)
+        return cv2.imdecode(image, flags=1)
 
-        jpeg_quality = 75
-        image_type = rsc_pb2.JPG
+    def frame_available(self):
+        return True
 
+    def frame(self):
         request = rsc_pb2.SimulationScreenCaptureRequest(
-                widht=capture_width,
-                height=capture_height,
-                imageType=image_type,
-                jpgQuality=jpeg_quality)
+                widht=self._capture_width,
+                height=self._capture_height,
+                imageType=self._image_type,
+                jpgQuality=self._jpeg_quality)
 
         response = self._stub.GetScreenCapture(request)
-        return response.image
+        return self._decode_image(response.image)
 
     def make_action(self, action):
         action_req = rsc_pb2.SimulationActionRequest(action=action)
@@ -51,6 +62,7 @@ def main(_):
     '''
     Connect to IP cam and print results
     '''
+    # TODO: Code needs updating to take params.yaml
     unity_sim = UnitySimulation(
         host_ip="localhost",
         port="50051")

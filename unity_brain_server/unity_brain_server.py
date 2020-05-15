@@ -9,9 +9,9 @@ import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
 
 
 class UnityBrainServer(rsc_pb2_grpc.BrainServerServicer):
-    def __init__(self, host_ip, port):
-        self._host_ip = host_ip
-        self._port = port
+    def __init__(self, params):
+        self._host_ip = params["brain_server"]["ip"]
+        self._port = params["brain_server"]["port"]
         self._channel = grpc.insecure_channel(
             '{}:{}'.format(self._host_ip, self._port))
         self._stub = rsc_pb2_grpc.BrainServerStub(self._channel)

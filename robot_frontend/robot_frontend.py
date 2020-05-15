@@ -5,15 +5,16 @@ import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
 
 
 class RobotFrontend:
-    def __init__(self, robot_ip, port):
-        self._robot_ip = robot_ip
-        self._robot_port = port
+    def __init__(self, params):
+        self._robot_ip = params["robot"]["ip"]
+        self._robot_port = params["robot"]["port"]
         self._channel = grpc.insecure_channel(
             '{}:{}'.format(self._robot_ip, self._robot_port))
         self._stub = rsc_pb2_grpc.RobotFrontendStub(self._channel)
 
-        self._robot_speed = 150
-        self._turn_speed = 1
+        self._robot_speed = params["robot"]["robot_speed"]
+        self._turn_speed = params["robot"]["turn_speed"]
+        self._move_turn_speed = params["robot"]["move_turn_speed"]
 
     def _get_motor_speeds(self, action):
         l_motor = None
@@ -30,18 +31,18 @@ class RobotFrontend:
             r_motor = self._robot_speed
         # Turn Clockwise
         elif action == 3:
-            l_motor = -self._robot_speed * self._turn_speed
-            r_motor = self._robot_speed * self._turn_speed
+            l_motor = -self._turn_speed
+            r_motor = self._turn_speed
         # Turn Anti Clockwise
         elif action == 4:
-            l_motor = self._robot_speed * self._turn_speed
-            r_motor = -self._robot_speed * self._turn_speed
-        elif action == 5:
-            l_motor = -self._robot_speed * self._turn_speed * 0.75
-            r_motor = -self._robot_speed * self._turn_speed
-        elif action == 6:
-            l_motor = -self._robot_speed * self._turn_speed
-            r_motor = -self._robot_speed * self._turn_speed * 0.75
+            l_motor = self._turn_speed
+            r_motor = -self._turn_speed
+        # elif action == 5:
+        #     l_motor = -self._move_turn_speed
+        #     r_motor = -self._robot_speed
+        # elif action == 6:
+        #     l_motor = -self._robot_speed
+        #     r_motor = -self._move_turn_speed
         # No action
         elif action == 0:
             l_motor = 0

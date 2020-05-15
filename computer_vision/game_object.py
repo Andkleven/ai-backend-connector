@@ -14,7 +14,13 @@ FONT_DEFAULT_COLOR = (0, 0, 255)
 
 
 class GameObject():
-    def __init__(self, coordinates, line_color, rotation=None, buffer_distance=0, name=""):
+    def __init__(
+            self,
+            coordinates,
+            line_color,
+            rotation=None,
+            buffer_distance=0,
+            name=""):
         self._coordinates = coordinates
         self._rotation = rotation
         self._line_color = line_color
@@ -58,7 +64,6 @@ class GameObject():
             line_thickness = LINE_THICKNESS
         pts = np.array([self._coordinates], np.int32)
         pts = pts.reshape((-1, 1, 2))
-        # print(f'pts: {pts}')
         cv2.polylines(image, [pts], True, self._line_color, line_thickness)
         cv2.putText(
             image,

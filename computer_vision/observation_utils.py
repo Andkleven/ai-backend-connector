@@ -1,3 +1,8 @@
+'''
+Common functions for observations
+'''
+
+
 def get_observations_for_objects(
         robot_point,
         sectors,
@@ -22,7 +27,7 @@ def get_observations_for_objects(
         sector_obs = [0] * (len(objects_for_detection) + 2)
         sector_obs[len(sector_obs) - 2] = 1.0
 
-        for active_group_index, object_group in enumerate(objects_for_detection):
+        for active_group_idx, object_group in enumerate(objects_for_detection):
             for obj in object_group:
                 intersects = sector.intersects(obj)
                 if intersects is True:
@@ -34,7 +39,7 @@ def get_observations_for_objects(
                        ):
                         for i in range(len(objects_for_detection)):
                             sector_obs[i] = 0.0
-                        sector_obs[active_group_index] = 1.0
+                        sector_obs[active_group_idx] = 1.0
                         sector_obs[len(sector_obs) - 2] = 0.0
                         sector_obs[len(sector_obs) - 1] = new_dist
         observations.extend(sector_obs)
@@ -66,7 +71,7 @@ def print_observations(
     for i in range(len(angles)):
         start = i * obs_per_sector
         stop = (i + 1) * obs_per_sector
-        obs_string += f'Sector {angles[i]:+>3} | {obs_temp[start:stop]}\n'
+        obs_string += f'Sector {angles[i]:+>3.0f} | {obs_temp[start:stop]}\n'
 
     if include_raw:
         obs_string += f'==== Raw observation\n{obs_temp}\n'

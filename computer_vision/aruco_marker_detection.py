@@ -12,7 +12,8 @@ def get_aruco_marker_pos_and_rot(
         camera_calib_params,
         size_of_marker,
         only_z_rot=True,
-        length_of_axis=0.05):
+        length_of_axis=0.05,
+        debug=False):
     '''
     Get the position and rotation of the aruco marker to be
     detected
@@ -47,7 +48,7 @@ def get_aruco_marker_pos_and_rot(
         only_z_rot=only_z_rot)
 
     # Show image showing the detected aruco markers
-    if tvecs is not None and rvecs is not None:
+    if tvecs is not None and rvecs is not None and debug:
         _drawDetectedMarkers(image, corners, detected_ids, tvecs,
                              rvecs, mtx, dist, length_of_axis,
                              rejected_img_points)

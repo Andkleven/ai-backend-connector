@@ -41,7 +41,8 @@ class GStreamerVideoSink():
         # [Rasp raw image](http://picamera.readthedocs.io/en/release-0.7/recipes2.html#raw-image-capture-yuv-format)
         # Cam -> CSI-2 -> H264 Raw (YUV 4-4-4 (12bits) I420)
         # self.video_codec = '! application/x-rtp, payload=96 ! rtph264depay ! h264parse ! avdec_h264'
-        self.video_codec = '! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264'
+        # self.video_codec = '! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264' # <-----
+        self.video_codec = '! application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec' # <-----
         # Python don't have nibble, convert YUV nibbles (4-4-4) to OpenCV standard BGR bytes (8-8-8)
         self.video_decode = \
             '! decodebin ! videoconvert ! video/x-raw,format=(string)BGR ! videoconvert'
@@ -148,7 +149,7 @@ class GStreamerVideoSink():
     def _callback(self, sink):
         sample = sink.emit('pull-sample')
         new_frame = self._gst_to_opencv(sample)
-        new_frame = self._crop_center(new_frame, 1080, 1080)
+        # new_frame = self._crop_center(new_frame, 1080, 1080)
         # new_frame = self._resize(new_frame, self._width, self._height)
         with self._mutex:
             self._frame = new_frame

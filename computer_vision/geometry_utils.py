@@ -9,8 +9,21 @@ from math import pi
 
 from computer_vision.game_object import GameObject
 
+START_OFFSET = 25
 
-def _get_ray_angles(robot_rotation, angles):
+
+def _create_line(coordinates, angle, dist):
+    angle = angle * pi / 180.0
+    line = LineString([
+        (coordinates[0] + START_OFFSET * sin(angle),
+         coordinates[1] + START_OFFSET * cos(angle)),
+        (coordinates[0] + dist * sin(angle),
+         coordinates[1] + dist * cos(angle))
+    ])
+    return line
+
+
+def _get_ray_angles_for_robot_rotation(robot_rotation, angles):
     local_rotation = robot_rotation - 90
     ray_angles = angles
     for i in range(len(ray_angles)):
@@ -19,56 +32,38 @@ def _get_ray_angles(robot_rotation, angles):
     return ray_angles
 
 
-def _create_line(coordinates, angle, dist):
-    angle = angle * pi / 180.0
-    line = LineString([
-        (coordinates[0], coordinates[1]),
-        (coordinates[0] + dist * sin(angle),
-         coordinates[1] + dist * cos(angle))
-    ])
-    return line
+def get_ray_angles(max_angle_per_side, number_of_rays_per_side):
+    anglesOut = []
+    delta = max_angle_per_side / number_of_rays_per_side
+
+    for i in range(number_of_rays_per_side):
+        anglesOut.append(-max_angle_per_side + i * delta)
+
+    anglesOut.append(0)
+
+    for i in range(number_of_rays_per_side):
+        anglesOut.append((i + 1) * delta)
+
+    # Angles created in Python are wrong way around compared to Unity
+    anglesOut.reverse()
+
+    return anglesOut
 
 
-def _create_sector_vectors(local_origo, angles, ray_length):
-    sector_vectors = []
-    for angle in angles:
-        sector_vector = _create_line(local_origo.coords[0], angle, ray_length)
-        sector_vectors.append(sector_vector)
-
-    return sector_vectors
-
-
-def create_sectors(robot_obj, angles, ray_length):
-    ray_angles = _get_ray_angles(robot_rot, angles)
-    sector_vectors = _create_sector_vectors(
-        robot_obj.coords[0],
-        ray_angles,
-        ray_length)
-    sector_points_array = []
-    sectors = []
-
-    for i in range(len(sector_vectors) - 1):
-        sector_points_array.append([
-            local_origo.coords[0],
-            sector_vectors[i].coords[1],
-            sector_vectors[i + 1].coords[1]])
-
-    for sector_points in sector_points_array:
-        sectors.append(GameObject(sector_points, (0, 255, 255), name="sector"))
-
-    return sectors
-
-
-def create_fat_rays(robot_obj, angles, ray_length, ray_width):
-    ray_angles = _get_ray_angles(robot_obj.rotation, angles)
-
+def create_fat_rays(robot_obj, angles, ray_length, ray_width, front_ray_width):
+    ray_angles = _get_ray_angles_for_robot_rotation(robot_obj.rotation, angles)
+    center_ray_index = int((len(angles) - 1) / 2)
     fat_rays = []
-    for angle in ray_angles:
+    for idx, angle in enumerate(ray_angles):
+        cast_width, cast_color = \
+            (front_ray_width, (0, 0, 255)) \
+            if idx is center_ray_index \
+            else (ray_width, (0, 255, 0))
         fat_ray = _create_line(robot_obj.coords[0], angle, ray_length)
         fat_ray_obj = GameObject(
             [*fat_ray.coords],
-            (0, 255, 0),
-            buffer_distance=ray_width,
+            cast_color,
+            buffer_distance=cast_width,
             name="Fat ray")
         fat_rays.append(fat_ray_obj)
     return fat_rays

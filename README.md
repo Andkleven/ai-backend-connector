@@ -21,6 +21,8 @@ cd ../../../..
 ```
 
 ## Install Python packages
+`pip install --upgrade pip`
+`pip install --upgrade setuptools`
 `pip install -r requirements.txt`
 **Note for Windows:** Download Shapely-package which has it's geos-dependency built in from link below. Choose the one which matches your system from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely). Install with `pip install Shapely‑1.7.0‑cp36‑cp36m‑win_amd64.whl` or what ever is your system's package name. After installing Shapely wheel comment out `shapely` from requirements.txt and run `pip install -r requirements.txt`.
 
@@ -48,4 +50,9 @@ python -m computer_vision.camera_calibration -m=calibration -i=computer_vision/u
 Run the following in the raspberry pi camera to send video stream to IP 192.168.10.56
 ```sh
 gst-launch-1.0 rpicamsrc bitrate=1700000 sensor-mode=4 ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.10.56 port=5200
+```
+
+Or this
+```sh
+raspivid -w 1080 -h 1080 -b 25000000 -cd MJPEG -fps 40 -n -t 0 -o - | gst-launch-1.0 -v fdsrc ! "image/jpeg,width=1640,height=1232",framerate=40/1 ! jpegparse ! rtpjpegpay ! udpsink host=192.168.10.56 port=5200
 ```
