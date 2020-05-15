@@ -51,7 +51,7 @@ class GameObject():
                 self._geometry.centroid.coords[0],
                 np.int32)
 
-    def draw_object_on_image(self, image):
+    def draw_object_on_image(self, image, override_color=None, filled=False):
         '''
         Draw objects boundaries to the given image. Remember to call
         "cv2.imshow" and  "cv2.waitKey"-functions after drawing all the
@@ -64,14 +64,20 @@ class GameObject():
             line_thickness = LINE_THICKNESS
         pts = np.array([self._coordinates], np.int32)
         pts = pts.reshape((-1, 1, 2))
-        cv2.polylines(image, [pts], True, self._line_color, line_thickness)
+
+        color = \
+            override_color if override_color is not None else self._line_color
+        if filled is False:
+            cv2.polylines(image, [pts], True, color, line_thickness)
+        else:
+            cv2.fillPoly(image, [pts], color)
         cv2.putText(
             image,
             self._name,
             tuple(self._center),
             FONT,
             FONT_SCALE,
-            self._line_color,
+            color,
             FONT_THICKNESS)
 
     @property

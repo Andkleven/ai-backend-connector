@@ -33,6 +33,8 @@ flags.DEFINE_string(
     "Specify operation mode. 'simu', 'test', 'prod'",
     short_name="m")
 
+FLAGS = flags.FLAGS
+
 
 def _get_image_source_and_frontend(mode, params):
     image_source, frontend = None, None
@@ -68,11 +70,14 @@ def main(_):
             if not image_source.frame_available():
                 continue
             image = image_source.frame()
+            debug_image = image.copy()
             image_cap_time = time.time()
             image_cap_dur = image_cap_time - start
 
             # 2) Get observations from image
-            lower_obs, upper_obs = image_processer.image_to_observations(image)
+            lower_obs, upper_obs = image_processer.image_to_observations(
+                image=image,
+                debug_image=debug_image)
             observation_time = time.time()
             observation_dur = observation_time - image_cap_time
 
@@ -105,11 +110,10 @@ def main(_):
     except KeyboardInterrupt:
         print("Keyboard Interrupt")
     finally:
-        if mode is PROD:
+        if mode == PROD:
             status = frontend.make_action(0)
         print("Exiting")
 
 
 if __name__ == "__main__":
-    FLAGS = flags.FLAGS
     app.run(main)

@@ -13,10 +13,12 @@ from computer_vision.geometry_utils import (
     create_fat_rays,
     get_ray_angles)
 from computer_vision.game_object import GameObject
-from computer_vision.observation_utils import (
-    get_observations_for_objects,
-    print_observations)
-
+from computer_vision.observation_utils import get_observations_for_objects
+from computer_vision.visualization_utils import (
+    visualize_item,
+    show_game_arena,
+    show_visualizations,
+    visualize_observations)
 
 # Blue, green, red
 GREEN = (0, 255, 0)
@@ -25,24 +27,6 @@ BLACK = (0, 0, 0)
 YELLOW = (0, 255, 255)
 RED = (0, 0, 255)
 
-FONT = cv2.FONT_HERSHEY_SIMPLEX
-FONT_SCALE = 0.7
-FONT_THICKNESS = 2
-FONT_DEFAULT_COLOR = (0, 0, 255)
-
-# LOW_COLOR = [140, 100, 100]  # For simulation
-# HIGH_COLOR = [173, 255, 255]  # For simulation
-# LOW_COLOR = [160, 90, 20]  # For real life
-# HIGH_COLOR = [172, 255, 255]  # For real life
-
-# BALL_RADIUS = 8  # 25
-
-# MAX_ANGLE_PER_SIDE = 170
-# NUMBER_OF_RAYS_PER_SIDE = 15
-# RAY_LENGTH = 1400
-# CASTING_RAY_WIDTH = 10
-# FRONT_CASTING_RAY_WIDTH = 1
-
 
 class ImageProcesser():
     def __init__(self, params):
@@ -50,6 +34,8 @@ class ImageProcesser():
         self._aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
         self._aruco_code = params["robot"]["aruco_code"]
         self._parameters = aruco.DetectorParameters_create()
+        self._min_ball_area_to_detect = \
+            params["image_processing"]["min_ball_area_to_detect"]
         self._camera_calib_params = None
         with open(params["camera"]["calib_params"]) as json_file:
             self._camera_calib_params = json.load(json_file)
@@ -73,13 +59,16 @@ class ImageProcesser():
             for coords in params["arena"]["goals"]]
 
         self._wall_objects = [
-            GameObject(coords, BLUE, name="goal")
+            GameObject(coords, YELLOW, name="wall")
             for coords in params["arena"]["walls"]]
 
-    def image_to_observations(self, image):
+        self._show_mask = params["image_processing"]["show_mask"]
+
+    def image_to_observations(self, image, debug_image):
         warning_text = ""
-        debug_image = image.copy()
-        self._show_game_arena(debug_image)
+        visualize_item(
+            image, *self._goal_objects, filled=True, override_color=YELLOW)
+        show_game_arena(debug_image, self._wall_objects, self._goal_objects)
 
         robot_obj = self._get_robot_object(
             image=image,
@@ -87,43 +76,40 @@ class ImageProcesser():
         if robot_obj is None:
             warning_text = "Could not locate robot's Aruco marker\n"
         else:
-            self._visualize_item(debug_image, robot_obj)
+            visualize_item(debug_image, robot_obj)
 
-        ball_objs = self._get_ball_objects(image=image)
+        ball_objs = self._get_ball_objects(
+            image=image,
+            show_mask=self._show_mask)
         if ball_objs is None:
             warning_text = warning_text + "Could not locate ball"
         else:
-            self._visualize_item(
+            visualize_item(
                 debug_image,
                 *ball_objs)
 
         if ball_objs is None or robot_obj is None:
-            self._visualize_item(
+            visualize_item(
                 debug_image,
                 warning_text,
                 text_pos=(50, 50),
-                text_color=BLACK)
-            self._show_game_arena(debug_image)
-            self._show_visualizations(debug_image)
+                text_color=YELLOW)
+            show_visualizations(debug_image)
             return [], []
 
         lower_obs, upper_obs, sectors = self._get_observations(
             robot_obj=robot_obj,
             ball_objs=ball_objs)
-        self._visualize_observations(
+        visualize_observations(
             lower_obs,
             upper_obs,
+            self._angles,
             sectors,
             debug_image)
 
-        self._show_game_arena(debug_image)
-        self._show_visualizations(debug_image)
+        show_visualizations(debug_image)
 
         return lower_obs, upper_obs
-
-    def _show_game_arena(self, image):
-        self._visualize_item(image, *self._wall_objects)
-        self._visualize_item(image, *self._goal_objects)
 
     def _get_robot_object(
             self,
@@ -154,7 +140,7 @@ class ImageProcesser():
 
         return robot_obj
 
-    def _get_ball_objects(self, image):
+    def _get_ball_objects(self, image, show_mask):
         if image is None:
             return None
 
@@ -167,44 +153,26 @@ class ImageProcesser():
             self._high_ball_color)
 
         # Show ball mask to see in detail the ball detection
-        # cv2.imshow('ball_mask', ball_mask)
+        if show_mask:
+            cv2.imshow('ball_mask', ball_mask)
 
-        ball_coordinates = find_center_points(ball_mask)
+        ball_coordinates = find_center_points(
+            ball_mask,
+            self._min_ball_area_to_detect)
 
         if ball_coordinates is not None:
             ball_objs = [
                 GameObject(
                     ball,
                     BLACK,
-                    buffer_distance=self._params["image_processing"]["ball_radius"],
+                    buffer_distance=self._params["image_processing"]
+                        ["ball_radius"],
                     name="Ball")
                 for ball in ball_coordinates]
         else:
             ball_objs = None
 
         return ball_objs
-
-    def _visualize_item(self, image, *args, **kwargs):
-        for item in args:
-            if isinstance(item, GameObject):
-                item.draw_object_on_image(image)
-            elif isinstance(item, str):
-                if 'text_color' in kwargs:
-                    text_color = kwargs['text_color']
-                else:
-                    text_color = FONT_DEFAULT_COLOR
-                for i, line in enumerate(item.split('\n')):
-                    x = kwargs['text_pos'][0]
-                    y0 = kwargs['text_pos'][1]
-                    dy = 25
-                    y = y0 + i*dy
-                    cv2.putText(
-                        image, line, (x, y), FONT, FONT_SCALE,
-                        text_color, FONT_THICKNESS)
-
-    def _show_visualizations(self, image):
-        cv2.imshow('Game', image)
-        cv2.waitKey(1)
 
     def _get_observations(
             self,
@@ -254,34 +222,3 @@ class ImageProcesser():
         #     f'upper obs dur: {upper_obs_dur:05.3f} |', end='\r')
 
         return lower_obs, upper_obs, sectors
-
-    def _visualize_observations(self, lower_obs, upper_obs, sectors, image):
-        lower_obs_str = print_observations(
-            lower_obs,
-            self._angles,
-            return_string=True,
-            include_raw=False)
-        lower_obs_str = \
-            'Lower obs\n| Ball | Goal | Wall | Nothing | Distance |\n' \
-            f'{lower_obs_str}'
-        self._visualize_item(
-            image,
-            lower_obs_str,
-            text_pos=(50, 50),
-            text_color=BLUE)
-
-        # upper_obs_str = print_observations(
-        #     upper_obs,
-        #     self._angles,
-        #     return_string=True,
-        #     include_raw=False)
-        # upper_obs_str = \
-        #     'Upper obs\n| Ball | Goal | Wall | Nothing | Distance |\n' \
-        #     f'{upper_obs_str}'
-        # self._visualize_item(
-        #     image,
-        #     upper_obs_str,
-        #     text_pos=(50, 350),
-        #     text_color=BLUE)
-
-        self._visualize_item(image, *sectors)

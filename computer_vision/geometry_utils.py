@@ -9,7 +9,9 @@ from math import pi
 
 from computer_vision.game_object import GameObject
 
-START_OFFSET = 25
+START_OFFSET = 50
+RED = (0, 0, 255)
+GREEN = (0, 255, 0)
 
 
 def _create_line(coordinates, angle, dist):
@@ -56,9 +58,9 @@ def create_fat_rays(robot_obj, angles, ray_length, ray_width, front_ray_width):
     fat_rays = []
     for idx, angle in enumerate(ray_angles):
         cast_width, cast_color = \
-            (front_ray_width, (0, 0, 255)) \
+            (front_ray_width, RED) \
             if idx is center_ray_index \
-            else (ray_width, (0, 255, 0))
+            else (ray_width, GREEN)
         fat_ray = _create_line(robot_obj.coords[0], angle, ray_length)
         fat_ray_obj = GameObject(
             [*fat_ray.coords],

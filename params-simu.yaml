@@ -24,66 +24,38 @@ brain_server:
     port: 50052
 
 image_processing:
+    # Value ranges for HSV-values in OpenCV
+    # H: 0-179, S: 0-255, V: 0-255
     ball_low_color: [140, 100, 100]
     ball_high_color: [173, 255, 255]
-    ball_radius: 8
-    max_angle_per_side: 170
+    ball_radius: 23
+    max_angle_per_side: 140
     number_of_rays_per_side: 15
     ray_length: 1400
-    casting_ray_width: 10
-    front_casting_ray_width: 1
+    casting_ray_width: 30
+    front_casting_ray_width: 6
+    min_ball_area_to_detect: 100
+    show_mask: false
 
 arena:
-    # goals: [[885, 0], [1080, 195], [1080, 0]], # Right upper corner
-    goals: [[[1080, 840], [840, 1080], [1080, 1080]]] # Right lower corner
-    walls: [
-        [[10, 10], [10, 1070]],
-        [[10, 1070], [1070, 1070]],
-        [[1070, 1070], [1070, 5]],
-        [[1070, 10], [10, 10]],
-        [[10, 75], [75, 10]],
-        [[10, 1010], [75, 1070]],
-        [[1005, 10], [1070, 75]]
+    # goals: [[885, 0], [1080, 195], [1080, 0]], # Right upper corner, level 3
+    # goals: [[[1080, 840], [840, 1080], [1080, 1080]]] # Right lower corner, level 3
+    goals: [[[1080, 820], [820, 1080], [1080, 1080]]] # Right lower corner, level 5
+    # walls: [  # level 3
+    #     [[10, 10], [10, 1070]],
+    #     [[10, 1070], [1070, 1070]],
+    #     [[1070, 1070], [1070, 5]],
+    #     [[1070, 10], [10, 10]],
+    #     [[10, 75], [75, 10]],
+    #     [[10, 1010], [75, 1070]],
+    #     [[1005, 10], [1070, 75]]
+    # ]
+    walls: [  # level 5
+        [[35, 35], [35, 1045]],
+        [[35, 1045], [1045, 1045]],
+        [[1045, 1045], [1045, 35]],
+        [[1045, 35], [35, 35]],
+        [[35, 230], [230, 35]],
+        [[35, 850], [230, 1045]],
+        [[850, 35], [1045, 230]]
     ]
-
-
-debug:
-
-    colors:
-        # Blue, green, red
-
-# ip_camera_params:
-#     video_url: "udp://@224.0.0.0:1234" #"http://192.168.43.1:8080/videofeed" # "udp://@224.0.0.0:1234" #"http://192.168.10.55:8080/videofeed"
-#     calibration_params_file: "camera_calibration/calib-params.json"
-#     cropped_video_size: 1080
-#     original_video_height: 1080
-#     original_video_width: 1080
-#     resize_video_size: 1080
-#     size_of_marker: 0.047 # Size in meters
-#     min_ball_area_to_detect: 50 # See ip_cam_connection.py _find_center_points-function to get the right value to this variable
-#     arena_size_in_meters: 4
-
-#     # Value ranges for HSV-values in OpenCV
-#     # H: 0-179, S: 0-255, V: 0-255
-#     low_pink_ball_color_hsv: [150, 130, 170]
-#     high_pink_ball_color_hsv: [173, 255, 255]
-#     low_yellow_ball_color_hsv: [25, 80, 124]
-#     high_yellow_ball_color_hsv: [42, 255, 255]
-
-# game_params:
-#     angles: [-100, -45, -20, 0, 20, 45, 100]
-#     ray_length: 5.657 # SQRY(4^2 + 4^2)
-#     robot_speed: 115 # 2.35 seconds / meter 
-#     turn_speed: 1 # Percent of robot_speed ## 2.6 seconds / full 360 degree turn
-#     arena_params_path: "arena_params/" # Path to folder with slash
-#     team_color: "red" # Either blue or red
-#     agent_params:
-#         striker:
-#             aruco_code: 28
-        
-#         goalie:
-#             aruco_code: 29
-
-# unity_params:
-#     unity_ip: "127.0.0.1"
-#     unity_port: "50051"

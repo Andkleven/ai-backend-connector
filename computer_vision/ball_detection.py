@@ -3,21 +3,19 @@ import imutils
 import numpy as np
 
 
-# TODO: Make this a variable coming from main program
-# min_ball_area_to_detect = 5000  # For simulation
-min_ball_area_to_detect = 100 # 300
-iterations = 2
+ITERATIONS = 2
+GREEN = (0, 255, 0)
 
 
 def find_balls_by_color(hsv_image, orig_image, low_color, high_color):
     color_mask = cv2.inRange(hsv_image, low_color, high_color)
-    color_mask = cv2.erode(color_mask, None, iterations=iterations)
-    color_mask = cv2.dilate(color_mask, None, iterations=iterations)
+    color_mask = cv2.erode(color_mask, None, iterations=ITERATIONS)
+    color_mask = cv2.dilate(color_mask, None, iterations=ITERATIONS)
     color_image = cv2.bitwise_and(orig_image, orig_image, mask=color_mask)
     return color_image, color_mask
 
 
-def find_center_points(color_mask, orig_image=None):
+def find_center_points(color_mask, min_ball_area_to_detect, orig_image=None):
     center_points = None
     contours = cv2.findContours(
         color_mask, cv2.RETR_EXTERNAL,
@@ -32,7 +30,7 @@ def find_center_points(color_mask, orig_image=None):
             continue
 
         if orig_image is not None:
-            cv2.drawContours(orig_image, contour, -1, (0, 255, 0), 3)
+            cv2.drawContours(orig_image, contour, -1, GREEN, 3)
         # compute the center of the contour
         moments = cv2.moments(contour)
         center_x = int(moments["m10"] / moments["m00"])
