@@ -5,7 +5,7 @@ robot:
     aruco_marker_size: 0.15
     robot_speed: 80
     turn_speed: 80
-    move_turn_speed: 100
+    move_turn_speed: 50
 
 camera:
     port: 5200

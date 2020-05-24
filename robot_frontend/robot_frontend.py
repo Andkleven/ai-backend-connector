@@ -37,12 +37,14 @@ class RobotFrontend:
         elif action == 4:
             l_motor = self._turn_speed
             r_motor = -self._turn_speed
-        # elif action == 5:
-        #     l_motor = -self._move_turn_speed
-        #     r_motor = -self._robot_speed
-        # elif action == 6:
-        #     l_motor = -self._robot_speed
-        #     r_motor = -self._move_turn_speed
+        # Turn right and go forward
+        elif action == 5:
+            l_motor = -self._move_turn_speed
+            r_motor = -self._robot_speed
+        # Turn left and go forward
+        elif action == 6:
+            l_motor = -self._robot_speed
+            r_motor = -self._move_turn_speed
         # No action
         elif action == 0:
             l_motor = 0
