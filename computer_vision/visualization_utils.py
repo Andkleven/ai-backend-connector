@@ -13,7 +13,7 @@ FONT_THICKNESS = 2
 FONT_DEFAULT_COLOR = RED
 
 
-def show_game_arena(image, wall_objects, goal_objects):
+def visualize_game_arena(image, wall_objects, goal_objects):
     visualize_item(image, *wall_objects)
     visualize_item(image, *goal_objects)
 

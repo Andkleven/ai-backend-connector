@@ -80,7 +80,17 @@ class GStreamerVideoSink():
         command = ' '.join(config)
         self.video_pipe = Gst.parse_launch(command)
         self.video_pipe.set_state(Gst.State.PLAYING)
-        self.video_sink = self.video_pipe.get_by_name('appsink0')
+
+        # On every restart the appsink's name's suffix number increments by one
+        # appsink0, appsink1, appsink2, ...
+        for i in range(100):
+            self.video_sink = self.video_pipe.get_by_name(f'appsink{i}')
+            if self.video_sink is not None:
+                print(f"Using appsink{i}")
+                break
+
+        if self.video_sink is None:
+            throw("video_sink is NONE")
 
     @staticmethod
     def _gst_to_opencv(sample):
@@ -132,10 +142,16 @@ class GStreamerVideoSink():
             available = type(self._frame) != type(None)
         return available
 
+    def stop(self):
+        print("FREERESOURCES")
+        self.video_pipe.set_state(Gst.State.NULL)
+        self.video_pipe = None
+        self.video_sink = None
+        self._mutex = None
+
     def _run(self):
         """ Get frame to update _frame
         """
-
         self._start_gst(
             [
                 self.video_source,
@@ -143,7 +159,6 @@ class GStreamerVideoSink():
                 self.video_decode,
                 self.video_sink_conf
             ])
-
         self.video_sink.connect('new-sample', self._callback)
 
     def _callback(self, sink):

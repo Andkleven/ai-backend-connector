@@ -3,7 +3,61 @@
     <title>Robot backend</title>
   </head>
   <body>
-    <h1>Robot view</h1>
-    <img id="bg" src="{{ url_for('video_feed') }}" width="720" height="720">
+    <button onclick="startGame('test')">Start testing</button>
+    <button onclick="startGame('prod')">Start game</button>
+    <button onclick="startGame('simu')">Start simulation</button>
+    <button onclick="stopGame()">Stop game</button>
+  
+    <h1>Game view</h1>
+    <img id="gameImage" width="720" height="720">
+
+    <h1>Game data</h1>
+    <p id="gameData"></p>
   </body>
 </html>
+
+<script>
+  var gameDataFetcher = null;
+
+  const gameImage = document.getElementById('gameImage');
+  const gameData = document.getElementById('gameData');
+
+  var setGameDataFetcher = () => {
+    gameDataFetcher = setInterval(() => {
+      fetch('/game_data')
+        .then(response => response.json())
+        .then(data => gameData.innerHTML = JSON.stringify(data));
+    }, 1000)
+  }
+
+  var clearGameDataFetcher = () => {
+    console.log("Clearing")
+    clearInterval(gameDataFetcher);
+  }
+
+  var startGame = (mode) => {
+    fetch(
+      '/start_game',
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({gameMode: mode})
+      })
+      .then(response => gameImage.src = '/video_feed')
+      .then(() => setGameDataFetcher())
+  }
+
+  var stopGame = () => {
+    gameData.innerHTML = ""
+    fetch(
+      '/stop_game',
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+      })
+      .then(response => {
+        gameImage.src = '';
+        clearGameDataFetcher();})
+  }
+
+</script>

@@ -9,8 +9,6 @@ import cv2
 import numpy as np
 from multiprocessing import Process
 
-import proto.RobotSystemCommunication_pb2 as rsc_pb2
-import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
 
 from utils.constants import SIMU, TEST, PROD
 from utils.utils import parse_options
