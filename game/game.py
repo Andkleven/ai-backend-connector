@@ -30,7 +30,7 @@ class Game:
 
         self._image_processer = ImageProcesser(self._params)
         if self._mode == PROD or self._mode == SIMU:
-            self._brain_server = UnityBrainServer(params)
+            self._brain_server = UnityBrainServer(self._params)
         else:
             self._brain_server = None
 
@@ -56,7 +56,9 @@ class Game:
 
     def get_game_data(self):
         with self._game_data_mutex:
-            return self._game_data.copy()
+            return self._game_data.copy() \
+                   if self._game_data is not None \
+                   else None
 
     def get_game_image_capture(self):
         with self._image_mutex:
@@ -82,15 +84,15 @@ class Game:
                 image_cap_dur = image_cap_time - start
 
                 # 2) Get observations from image
-                lower_obs, upper_obs = \
+                lower_obs, upper_obs, angles = \
                     self._image_processer.image_to_observations(
                         image=self._image,
                         debug_image=self._debug_image)
                 observation_time = time.time()
                 observation_dur = observation_time - image_cap_time
 
-            if (lower_obs is not None and len(lower_obs) is 0) \
-               or (upper_obs is not None and len(upper_obs) is 0):
+            if (lower_obs is None or len(lower_obs) is 0) \
+               or (upper_obs is None or len(upper_obs) is 0):
                 with self._game_data_mutex:
                     self._game_data = {
                         "fps": -1,
@@ -100,23 +102,15 @@ class Game:
                         "brainDur": -1,
                         "frontendDur": -1,
                         "noObservations": True,
-                        "Status": "No observations"
+                        "Status": "No observations",
+                        "lowerObs": [],
+                        "upperObs": [],
+                        "angles": angles
                     }
                 if self._mode == PROD or self._mode == SIMU:
                     status = self._frontend.make_action(0)
                 continue
-            else:
-                with self._game_data_mutex:
-                    self._game_data = {
-                        "fps": -1,
-                        "totalDur": -1,
-                        "imageCapDur": image_cap_dur,
-                        "obsDur": observation_dur,
-                        "brainDur": -1,
-                        "frontendDur": -1,
-                        "noObservations": False,
-                        "Status": "Running in test mode"
-                    }
+
             if self._mode == PROD or self._mode == SIMU:
                 # 3) Get action from brain
                 action = self._brain_server.get_action(lower_obs, upper_obs)
@@ -138,7 +132,27 @@ class Game:
                         "brainDur": brain_server_dur,
                         "frontendDur": frontend_dur,
                         "noObservations": False,
-                        "Status": "Playing game"
+                        "Status": "Playing game",
+                        "lowerObs": "",
+                        "upperObs": "",
+                        "angles": angles
+                    }
+            else:
+                total_time = time.time() - start
+                fps = int(1 / total_time)
+                with self._game_data_mutex:
+                    self._game_data = {
+                        "fps": fps,
+                        "totalDur": total_time,
+                        "imageCapDur": image_cap_dur,
+                        "obsDur": observation_dur,
+                        "brainDur": -1,
+                        "frontendDur": -1,
+                        "noObservations": False,
+                        "Status": "Running in test mode",
+                        "lowerObs": lower_obs,
+                        "upperObs": upper_obs,
+                        "angles": angles
                     }
 
         if self._mode == PROD or self._mode == SIMU:

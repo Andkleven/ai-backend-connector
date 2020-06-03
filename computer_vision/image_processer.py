@@ -17,7 +17,7 @@ from computer_vision.observation_utils import get_observations_for_objects
 from computer_vision.visualization_utils import (
     visualize_item,
     visualize_game_arena,
-    # show_visualizations,
+    show_visualizations,
     visualize_observations)
 
 # Blue, green, red
@@ -68,6 +68,8 @@ class ImageProcesser():
         warning_text = ""
         visualize_item(
             image, *self._goal_objects, filled=True, override_color=YELLOW)
+        visualize_item(
+            debug_image, *self._goal_objects, filled=True, override_color=YELLOW)
         visualize_game_arena(debug_image, self._wall_objects, self._goal_objects)
 
         robot_obj = self._get_robot_object(
@@ -95,7 +97,7 @@ class ImageProcesser():
                 text_pos=(50, 50),
                 text_color=YELLOW)
             # show_visualizations(debug_image)
-            return [], []
+            return [], [], self._angles
 
         lower_obs, upper_obs, sectors = self._get_observations(
             robot_obj=robot_obj,
@@ -109,7 +111,7 @@ class ImageProcesser():
 
         # show_visualizations(debug_image)
 
-        return lower_obs, upper_obs
+        return lower_obs, upper_obs, self._angles
 
     def _get_robot_object(
             self,

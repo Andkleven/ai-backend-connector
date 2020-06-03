@@ -143,7 +143,6 @@ class GStreamerVideoSink():
         return available
 
     def stop(self):
-        print("FREERESOURCES")
         self.video_pipe.set_state(Gst.State.NULL)
         self.video_pipe = None
         self.video_sink = None
