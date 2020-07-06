@@ -1,7 +1,9 @@
 from concurrent import futures
-import time
-from threading import Lock, Thread
 
+import time
+from multiprocessing import Lock, Process, Value
+from ctypes import c_bool
+import numpy as np
 from utils.utils import parse_options
 from utils.constants import SIMU, TEST, PROD
 from unity_simulation.unity_simulation import UnitySimulation
@@ -11,11 +13,14 @@ from reallife_camera_source.gstreamer_video_sink import GStreamerVideoSink
 from computer_vision.image_processer import ImageProcesser
 
 
+IMAGE_CHANNELS = 3
+
+
 class Game:
     def __init__(self, mode):
         self._mode = mode
         print(f'Starting game in {self._mode}-mode')
-        self._image_mutex = Lock()
+
         self._game_data_mutex = Lock()
 
         if self._mode == PROD or self._mode == TEST:
@@ -23,32 +28,38 @@ class Game:
         else:
             self._params = parse_options("params-simu.yaml")
 
+        self._step_time = 1 / self._params['decision_rate']
         self._image_source, self._frontend = \
-            self._get_image_source_and_frontend(
-                self._mode,
-                self._params)
+            self._get_image_source_and_frontend(self._mode, self._params)
 
         self._image_processer = ImageProcesser(self._params)
         if self._mode == PROD or self._mode == SIMU:
             self._brain_server = UnityBrainServer(self._params)
-        else:
-            self._brain_server = None
 
-        self._game_data = None
-        self._image = None
-        self._debug_image = None
+        self._step_start_time = time.time()
+        self._last_log_time = time.time()
+        self._reset_game_data()
+        image_size = (
+            self._params['simulation']['capture_width'],
+            self._params['simulation']['capture_height'],
+            IMAGE_CHANNELS)
+        self._image = np.zeros(image_size, dtype=np.uint8)
 
-        self._play_game = True
-
-        self._game_thread = Thread(target=self._start_game)
-        self._game_thread.start()
+        self._play_game = Value(c_bool, True)
+        self._game_process = Process(
+            target=self._start_game,
+            args=(self._play_game,))
+        self._game_process.start()
 
     def _get_image_source_and_frontend(self, mode, params):
-        image_source, frontend = None, None
         if mode == PROD or mode == TEST:
-            image_source = GStreamerVideoSink(port=params["camera"]["port"])
+            image_source = GStreamerVideoSink(
+                multicast_ip=params["camera"]["multicast_ip"],
+                port=params["camera"]["port"])
             if mode == PROD:
                 frontend = RobotFrontend(params)
+            else:
+                frontend = None
         elif mode == SIMU:
             simulation = UnitySimulation(params)
             frontend, image_source = simulation, simulation
@@ -56,115 +67,150 @@ class Game:
 
     def get_game_data(self):
         with self._game_data_mutex:
-            return self._game_data.copy() \
-                   if self._game_data is not None \
-                   else None
+            return self._game_data.copy()
 
     def get_game_image_capture(self):
-        with self._image_mutex:
-            if self._debug_image is not None:
-                return self._debug_image.copy()
-            elif self._image is not None:
-                return self._image.copy()
-            else:
-                return None
+        """
+        Get image capture from the game visualization
 
-    def _start_game(self):
-        while self._play_game:
-            start = time.time()
+        return : numpy.array(float) or None
+        """
+        image = self._image_processer.get_image()
+        return image
 
-            # 1) Get image
-            with self._image_mutex:
-                if not self._image_source.frame_available():
-                    continue
-                self._image = self._image_source.frame()
-                self._debug_image = self._image.copy()
+    def _write_game_data(self, field_name, data):
+        """
+        Write data to given field in _game_data-object
+        """
+        with self._game_data_mutex:
+            self._game_data[field_name] = data
 
-                image_cap_time = time.time()
-                image_cap_dur = image_cap_time - start
+    def _reset_game_data(self):
+        """
+        Reset the _game_data-object to initial state
+        """
+        with self._game_data_mutex:
+            self._game_data = {
+                "fps": -1,
+                "totalDuration": -1,
+                "imageCaptureDuration": -1,
+                "obsCreationDuration": -1,
+                "brainDuration": -1,
+                "frontendDuration": -1,
+                "status": "Initialized",
+                "lowerObs": [],
+                "upperObs": [],
+                "angles": []
+            }
+
+    def _stop_robot(self):
+        """
+        Stop robot by sending frontend the stop command
+        if frontend is used
+
+        return : Doesn't return anything
+        """
+        if self._mode == PROD or self._mode == SIMU:
+            # Stop the robot from moving
+            status = self._frontend.make_action(0)
+
+    def _log_time(self, log_name=None, log_start=False, log_end=False):
+        """
+        Log time a step has taken to _game_data-object with given field name
+
+        log_name : str
+        log_start : boolean
+        log_end : boolean
+        return : Doesn't return anything
+        """
+        if log_name is not None:
+            self._write_game_data(log_name, time.time() - self._last_log_time)
+            self._last_log_time = time.time()
+        if log_start:
+            self._step_start_time = time.time()
+        elif log_end:
+            total_time = time.time() - self._step_start_time
+            self._write_game_data(
+                'totalDuration', total_time)
+            self._write_game_data('fps', int(1 / total_time))
+
+    def _get_image_from_image_source(self):
+        """
+        Get image from image source and set it to _image
+        """
+        if not self._image_source.frame_available():
+            return
+        self._image = self._image_source.frame()
+
+    def _start_game(self, play_game):
+        try:
+            while play_game.value is True:
+                self._reset_game_data()
+                self._log_time(log_start=True)
+
+                # 1) Get image
+                self._get_image_from_image_source()
+                self._log_time(log_name='imageCaptureDuration')
 
                 # 2) Get observations from image
-                lower_obs, upper_obs, angles = \
+                # The _ and __ variables are placeholders for the second
+                # robot and it's observations
+                lower_obs, upper_obs, _, __ = \
                     self._image_processer.image_to_observations(
-                        image=self._image,
-                        debug_image=self._debug_image)
-                observation_time = time.time()
-                observation_dur = observation_time - image_cap_time
+                        image=self._image)
+                self._log_time(log_name='obsCreationDuration')
 
-            if (lower_obs is None or len(lower_obs) is 0) \
-               or (upper_obs is None or len(upper_obs) is 0):
-                with self._game_data_mutex:
-                    self._game_data = {
-                        "fps": -1,
-                        "totalDur": -1,
-                        "imageCapDur": image_cap_dur,
-                        "obsDur": observation_dur,
-                        "brainDur": -1,
-                        "frontendDur": -1,
-                        "noObservations": True,
-                        "Status": "No observations",
-                        "lowerObs": [],
-                        "upperObs": [],
-                        "angles": angles
-                    }
+                # 2.1) We didn't get observations
+                if lower_obs is None or upper_obs is None:
+                    self._write_game_data('status', 'No observations')
+                    self._stop_robot()
+                    self._log_time(log_end=True)
+                    with self._game_data_mutex:
+                        wait_time = \
+                            self._step_time - self._game_data['totalDuration']
+                        if wait_time > 0:
+                            time.sleep(wait_time)
+                    continue
+                # 2.2) We got observations
+                else:
+                    self._write_game_data('lowerObs', lower_obs)
+                    self._write_game_data('upperObs', upper_obs)
+                    self._write_game_data(
+                        'angles', self._image_processer.angles)
+
                 if self._mode == PROD or self._mode == SIMU:
-                    status = self._frontend.make_action(0)
-                continue
+                    # 3a) Get action from brain with the observations
+                    action = self._brain_server.get_action(
+                        lower_obs, upper_obs)
+                    self._log_time(log_name='brainDuration')
 
-            if self._mode == PROD or self._mode == SIMU:
-                # 3) Get action from brain
-                action = self._brain_server.get_action(lower_obs, upper_obs)
-                brain_server_time = time.time()
-                brain_server_dur = brain_server_time - observation_time
+                    # 4) Send the action to frontend
+                    status = self._frontend.make_action(action)
+                    self._write_game_data('status', 'Playing game')
+                    self._log_time(log_name='frontendDuration', log_end=True)
+                else:
+                    # 3b) Just log, don't connect to brain server nor frontend
+                    self._write_game_data('status', 'Running in test mode')
+                    self._log_time(log_end=True)
 
-                # 4) Send the action to frontend
-                status = self._frontend.make_action(action)
-                frontend_time = time.time()
-                frontend_dur = frontend_time - brain_server_time
-                total_time = frontend_time - start
-                fps = int(1 / total_time)
                 with self._game_data_mutex:
-                    self._game_data = {
-                        "fps": fps,
-                        "totalDur": total_time,
-                        "imageCapDur": image_cap_dur,
-                        "obsDur": observation_dur,
-                        "brainDur": brain_server_dur,
-                        "frontendDur": frontend_dur,
-                        "noObservations": False,
-                        "Status": "Playing game",
-                        "lowerObs": "",
-                        "upperObs": "",
-                        "angles": angles
-                    }
-            else:
-                total_time = time.time() - start
-                fps = int(1 / total_time)
-                with self._game_data_mutex:
-                    self._game_data = {
-                        "fps": fps,
-                        "totalDur": total_time,
-                        "imageCapDur": image_cap_dur,
-                        "obsDur": observation_dur,
-                        "brainDur": -1,
-                        "frontendDur": -1,
-                        "noObservations": False,
-                        "Status": "Running in test mode",
-                        "lowerObs": lower_obs,
-                        "upperObs": upper_obs,
-                        "angles": angles
-                    }
+                    wait_time = \
+                        self._step_time - self._game_data['totalDuration']
+                    time.sleep(wait_time)
 
-        if self._mode == PROD or self._mode == SIMU:
-            status = self._frontend.make_action(0)
-        print("Game stopped")
+            self._stop_robot()
+            print("Game stopped")
+
+        except KeyboardInterrupt:
+            print("Keyboard Interrupt")
+
+        finally:
+            self._stop_robot()
+            print("Game stopped")
 
     def stop_game(self):
         print("Stopping game")
-        self._play_game = False
-
-        if self._mode == PROD:
-            self._frontend.make_action(0)
+        self._play_game.value = False
 
         if self._image_source is not None:
             self._image_source.stop()

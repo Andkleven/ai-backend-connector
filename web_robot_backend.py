@@ -1,3 +1,4 @@
+import os
 from flask import (
     Flask,
     render_template,
@@ -8,6 +9,9 @@ from flask import (
 import cv2
 import time
 
+# https://www.pygame.org/wiki/HeadlessNoWindowsNeeded
+os.environ['SDL_VIDEODRIVER'] = 'dummy'
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'true'
 from game.game import Game
 
 

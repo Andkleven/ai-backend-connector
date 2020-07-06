@@ -1,15 +1,14 @@
-Cython
 opencv-python
 opencv-contrib-python
 imutils
 numpy
-shapely
 absl-py
-Pillow
 matplotlib
 pandas
 ruamel.yaml
 pynput
+pygame
+Box2D
 protobuf==3.6.0 # This is Unity version of gRPC on MLAgents 0.14.1
 grpcio-tools==1.11.1 # Unity version of gRPC on MLAgents 0.14.1
 grpcio==1.11.1 # Unity version of gRPC on MLAgents 0.14.1

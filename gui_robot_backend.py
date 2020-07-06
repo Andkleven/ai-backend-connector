@@ -1,18 +1,25 @@
+import os
 from concurrent import futures
+
+import time
 
 from absl import app
 from absl import logging
 from absl import flags
 
+import cv2
 from utils.constants import SIMU, TEST, PROD
 from utils.utils import parse_options
-from computer_vision.visualization_utils import show_visualizations
+
+# https://www.pygame.org/wiki/HeadlessNoWindowsNeeded
+os.environ['SDL_VIDEODRIVER'] = 'dummy'
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'true'
 from game.game import Game
 
 
 flags.DEFINE_string(
     "mode",
-    "prod",
+    "test",
     "Specify operation mode. 'simu', 'test', 'prod'",
     short_name="m")
 
@@ -32,19 +39,22 @@ def main(_):
             if frame is None:
                 print("Cannot get image from source", end='\r')
                 continue
-            show_visualizations(frame)
+            cv2.imshow('Game View', frame)
+            cv2.waitKey(1)
 
             data = game.get_game_data()
             if data is None:
                 data = {"status": "No data"}
             else:
+                pass
                 print(
                     f'FPS: {data["fps"]:02} |'
-                    f'total time: {data["totalDur"]:05.3f} |'
-                    f'image cap dur: {data["imageCapDur"]:05.3f} |'
-                    f'observation dur: {data["obsDur"]:05.3f} |'
-                    f'brain server dur: {data["brainDur"]:05.3f} |'
-                    f'frontend dur: {data["frontendDur"]:05.3f}', end='\r')
+                    f'total time: {data["totalDuration"]:05.3f} |'
+                    f'image cap dur: {data["imageCaptureDuration"]:05.3f} |'
+                    f'observation dur: {data["obsCreationDuration"]:05.3f} |'
+                    f'brain server dur: {data["brainDuration"]:05.3f} |'
+                    f'frontend dur: {data["frontendDuration"]:05.3f}', end='\r')
+            time.sleep(0.2)
     except KeyboardInterrupt:
         print("Keyboard Interrupt")
     finally:

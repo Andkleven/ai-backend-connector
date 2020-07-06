@@ -3,7 +3,8 @@
 import cv2
 import gi
 import numpy as np
-from multiprocessing import Lock
+from multiprocessing import Lock, Array
+import ctypes
 
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
@@ -21,72 +22,58 @@ class GStreamerVideoSink():
         video_source (string): Udp source ip and port
     """
 
-    def __init__(self, port=5200):
+    def __init__(self, multicast_ip, port):
         """Summary
         Args:
             port (int, optional): UDP port
         """
 
         Gst.init(None)
-
-        self.port = port
-        self._width = 1080
-        self._height = 1080
+        self._width = 1080  # TODO: Move to a yaml options file parameter
+        self._height = 1080  # TODO: Move to a yaml options file parameter
         self._frame = None
         self._mutex = Lock()
 
-        # [Software component diagram](https://www.ardusub.com/software/components.html)
-        # UDP video stream (:5600)
-        self.video_source = 'udpsrc port={}'.format(self.port)
-        # [Rasp raw image](http://picamera.readthedocs.io/en/release-0.7/recipes2.html#raw-image-capture-yuv-format)
-        # Cam -> CSI-2 -> H264 Raw (YUV 4-4-4 (12bits) I420)
-        # self.video_codec = '! application/x-rtp, payload=96 ! rtph264depay ! h264parse ! avdec_h264'
-        # self.video_codec = '! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264' # <-----
-        self.video_codec = '! application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec' # <-----
-        # Python don't have nibble, convert YUV nibbles (4-4-4) to OpenCV standard BGR bytes (8-8-8)
+        self.video_source = \
+            f'udpsrc multicast-group={multicast_ip} ' \
+            f'auto-multicast=true port={port}'
+        self.video_codec = \
+            '! application/x-rtp,encoding-name=JPEG,payload=26 ' \
+            '! rtpjpegdepay ! jpegdec'
         self.video_decode = \
-            '! decodebin ! videoconvert ! video/x-raw,format=(string)BGR ! videoconvert'
-        # Create a sink to get data
-        # self.video_sink_conf = \
-        #     '! appsink emit-signals=true sync=false max-buffers=2 drop=true'
+            '! decodebin ! videoconvert ' \
+            '! video/x-raw,format=(string)BGR ! videoconvert'
         self.video_sink_conf = \
             '! appsink emit-signals=true sync=false drop=true'
 
         self.video_pipe = None
         self.video_sink = None
 
+        self._image_size = (self._width, self._height, 3)
+        arr_size = self._width * self._height * 3
+        self._shared_arr = Array(ctypes.c_uint8, arr_size)
+        self.video_capture_image = np.frombuffer(
+            self._shared_arr.get_obj(),
+            dtype=np.uint8)
+        self.video_capture_image = \
+            np.reshape(self.video_capture_image, self._image_size)
+
         self._run()
 
     def _start_gst(self, config=None):
-        """ Start gstreamer pipeline and sink
-        Pipeline description list e.g:
-            [
-                'videotestsrc ! decodebin', \
-                '! videoconvert ! video/x-raw,format=(string)BGR ! videoconvert',
-                '! appsink'
-            ]
-        Args:
-            config (list, optional): Gstreamer pileline description list
         """
-
-        if not config:
-            config = \
-                [
-                    'videotestsrc ! decodebin',
-                    '! videoconvert ! video/x-raw,format=(string)BGR ! videoconvert',
-                    '! appsink'
-                ]
-
+        Start gstreamer pipeline and sink
+        """
         command = ' '.join(config)
         self.video_pipe = Gst.parse_launch(command)
         self.video_pipe.set_state(Gst.State.PLAYING)
 
-        # On every restart the appsink's name's suffix number increments by one
-        # appsink0, appsink1, appsink2, ...
+        # On every restart the appsink's name's suffix number increments
+        # by one: appsink0, appsink1, appsink2, ...
         for i in range(100):
             self.video_sink = self.video_pipe.get_by_name(f'appsink{i}')
             if self.video_sink is not None:
-                print(f"Using appsink{i}")
+                # print(f"Using appsink{i}")
                 break
 
         if self.video_sink is None:
@@ -94,7 +81,8 @@ class GStreamerVideoSink():
 
     @staticmethod
     def _gst_to_opencv(sample):
-        """Transform byte array into np array
+        """
+        Transform byte array into np array
         Args:
             sample (TYPE): Description
         Returns:
@@ -125,18 +113,19 @@ class GStreamerVideoSink():
         return cv2.resize(image, (width, height))
 
     def frame(self):
-        """ Get Frame
-        Returns:
-            iterable: bool and image frame, cap.read() output
+        """
+        Get Frame
+        Returns : numpy.array(int8)
+            Image as a numpy array
         """
         with self._mutex:
-            new_frame = self._frame
-        return new_frame
+            return np.copy(self._frame)
 
     def frame_available(self):
-        """Check if frame is available
-        Returns:
-            bool: true if frame is available
+        """
+        Check if frame is available
+        Returns : boolean
+            true if frame is available otherwise false
         """
         with self._mutex:
             available = type(self._frame) != type(None)
@@ -149,8 +138,15 @@ class GStreamerVideoSink():
         self._mutex = None
 
     def _run(self):
-        """ Get frame to update _frame
         """
+        Get frame to update _frame
+        """
+        self._frame = np.frombuffer(
+            self._shared_arr.get_obj(),
+            dtype=np.uint8)
+        self._frame = \
+            np.reshape(self._frame, self._image_size)
+
         self._start_gst(
             [
                 self.video_source,
@@ -166,7 +162,7 @@ class GStreamerVideoSink():
         # new_frame = self._crop_center(new_frame, 1080, 1080)
         # new_frame = self._resize(new_frame, self._width, self._height)
         with self._mutex:
-            self._frame = new_frame
+            self._frame[:] = new_frame
 
         return Gst.FlowReturn.OK
 
@@ -174,7 +170,9 @@ class GStreamerVideoSink():
 if __name__ == '__main__':
     # Create the video object
     # Add port= if is necessary to use a different one
-    video = GStreamerVideoSink()
+    multicast_ip = "224.1.1.1"
+    port = "5200"
+    video = GStreamerVideoSink(multicast_ip, port)
 
     while True:
         # Wait for the next frame
