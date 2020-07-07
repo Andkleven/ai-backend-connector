@@ -1,5 +1,4 @@
 import os
-from threading import Thread
 import numpy as np
 import pygame
 from observation_maker.box2d_framework.framework import Framework
@@ -96,6 +95,10 @@ class ObservationMaker(Framework):
         self._message = None
         self._stepper = self.run(single_step=True)
 
+    @property
+    def angles(self):
+        return self._robot_handler.angles
+
     def get_image(self):
         image = self.GetScreenCapture()
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
@@ -128,12 +131,11 @@ class ObservationMaker(Framework):
             return opencv_coords_list
         return mod(opencv_coords_list)
 
-    def _opencv_rot_to_box2d_rot(self, rotation):
-        return rotation
-
     def update_image(self, image, message):
         self.SetBackground(image)
         self._message = message
+        self._ball_handler.set_transforms([], [])
+        self._robot_handler.set_transforms([], [])
         self._make_step()
 
     def get_observations(
@@ -147,8 +149,11 @@ class ObservationMaker(Framework):
         """
         Get observations made by the simulation
         """
+        # Set background image to the simulation. Only needed
+        # for visual purposes. Not needed for getting observations.
         self.SetBackground(image)
 
+        # Setting transforms of balls and robot
         self._ball_handler.set_transforms(
             self._coords_mod(good_ball_transforms),
             self._coords_mod(bad_ball_transforms))
@@ -157,12 +162,12 @@ class ObservationMaker(Framework):
             self._coords_mod(robot1_transform),
             self._coords_mod(robot2_transform))
 
+        # Run one step of the simulation
         self._make_step()
 
-        observations = self._robot_handler.get_observations()
+        # Get the observations created in the simulation step
+        low_obs_r1, up_obs_r1 = self._robot_handler.get_observations()
 
-        low_obs_r1 = None
-        up_obs_r1 = None
         low_obs_r2 = None
         up_obs_r2 = None
         return low_obs_r1, up_obs_r1, low_obs_r2, up_obs_r2
@@ -175,20 +180,28 @@ class ObservationMaker(Framework):
         self._ball_handler.update()
         self._robot_handler.update()
 
-        angles = [element * 180 / b2_pi
-                  for element in self._robot_handler.angles]
-        results_str = print_observations(
-            self._robot_handler.get_observations(),
-            angles,
-            return_string=True)
-        results_str_arr = results_str.split("\n")
-        for line in results_str_arr:
-            self.Print(line)
+        self._print_observations_to_screen()
 
         self._CaptureScreen()
 
     def _make_step(self):
         next(self._stepper)
+
+    def _print_observations_to_screen(self):
+        low_obs_r1, _ = self._robot_handler.get_observations()
+        angles = [element * 180 / b2_pi
+                  for element in self._robot_handler.angles]
+        results_str = print_observations(
+            low_obs_r1,
+            angles,
+            return_string=True,
+            include_raw=False)
+        results_str_arr = results_str.split("\n")
+        y_start = 230
+        for line in results_str_arr:
+            # self.Print(line)
+            self.DrawStringAt(50, y_start, line)
+            y_start += 18
 
     def SetBackground(self, image):
         """

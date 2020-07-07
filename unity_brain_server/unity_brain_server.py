@@ -3,6 +3,7 @@ from concurrent import futures
 import time
 import random
 import grpc
+from multiprocessing import Value
 
 import proto.RobotSystemCommunication_pb2 as rsc_pb2
 import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
@@ -16,12 +17,27 @@ class UnityBrainServer(rsc_pb2_grpc.BrainServerServicer):
             '{}:{}'.format(self._host_ip, self._port))
         self._stub = rsc_pb2_grpc.BrainServerStub(self._channel)
 
+        self._available = Value('i', 1)
+
+    @property
+    def available(self):
+        return self._available.value == 1
+
     def get_action(self, lower_observations, upper_observations):
-        brain_req = rsc_pb2.BrainActionRequest(
-            lowerObservations=lower_observations,
-            upperObservations=upper_observations)
-        brain_res = self._stub.GetAction(brain_req)
-        return brain_res.action
+        try:
+            brain_req = rsc_pb2.BrainActionRequest(
+                lowerObservations=lower_observations,
+                upperObservations=upper_observations)
+            brain_res = self._stub.GetAction(brain_req)
+            return brain_res.action
+
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                self._available.value = 0
+                print("\n====\nUnityBrainServer cannot be reached!\n====\n")
+                raise Exception("Cannot connect to UnityBrainServer")
+        except Exception as e:
+            raise e
 
 
 # For testing

@@ -8,12 +8,19 @@ class BallHandler(object):
         self._world = world
         self._good_balls = []
         self._bad_balls = []
+        self._good_ball_transforms = []
+        self._bad_ball_transforms = []
 
     def set_transforms(self, good_ball_transforms, bad_ball_transforms):
         self._good_ball_transforms = good_ball_transforms
         self._bad_ball_transforms = bad_ball_transforms
 
     def update(self):
+        if self._good_ball_transforms is None:
+            self._good_ball_transforms = []
+        if self._bad_ball_transforms is None:
+            self._bad_ball_transforms = []
+
         current_good_ball_count = len(self._good_balls)
         new_good_ball_count = len(self._good_ball_transforms)
 

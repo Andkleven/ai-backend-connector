@@ -252,7 +252,7 @@ class PygameFramework(FrameworkBase):
         self.world.renderer = self.renderer
 
         try:
-            self.font = pygame.font.Font(None, 15)
+            self.font = pygame.font.Font(None, 25)
         except IOError:
             try:
                 self.font = pygame.font.Font("freesansbold.ttf", 15)
@@ -474,7 +474,7 @@ class PygameFramework(FrameworkBase):
         """
         self.screen.blit(self.font.render(
             str, True, color), (5, self.textLine))
-        self.textLine += 15
+        self.textLine += 18
 
     def Keyboard(self, key):
         """

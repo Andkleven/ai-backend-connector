@@ -46,7 +46,6 @@ def main(_):
             if data is None:
                 data = {"status": "No data"}
             else:
-                pass
                 print(
                     f'FPS: {data["fps"]:02} |'
                     f'total time: {data["totalDuration"]:05.3f} |'
@@ -55,8 +54,11 @@ def main(_):
                     f'brain server dur: {data["brainDuration"]:05.3f} |'
                     f'frontend dur: {data["frontendDuration"]:05.3f}', end='\r')
             time.sleep(0.2)
+
     except KeyboardInterrupt:
         print("Keyboard Interrupt")
+    except Exception as error:
+        print(f'Got unexpected exception in "main" Message: {error}')
     finally:
         game.stop_game()
         print("Exiting")

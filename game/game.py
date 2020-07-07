@@ -66,6 +66,9 @@ class Game:
         return image_source, frontend
 
     def get_game_data(self):
+        if self._play_game.value is False:
+            raise Exception("Game stopped")
+
         with self._game_data_mutex:
             return self._game_data.copy()
 
@@ -75,6 +78,9 @@ class Game:
 
         return : numpy.array(float) or None
         """
+        if self._play_game.value is False:
+            raise Exception("Game stopped")
+
         image = self._image_processer.get_image()
         return image
 
@@ -112,7 +118,8 @@ class Game:
         """
         if self._mode == PROD or self._mode == SIMU:
             # Stop the robot from moving
-            status = self._frontend.make_action(0)
+            if self._frontend.available is True:
+                status = self._frontend.make_action(0)
 
     def _log_time(self, log_name=None, log_start=False, log_end=False):
         """
@@ -196,6 +203,7 @@ class Game:
                 with self._game_data_mutex:
                     wait_time = \
                         self._step_time - self._game_data['totalDuration']
+                if wait_time > 0:
                     time.sleep(wait_time)
 
             self._stop_robot()
@@ -204,13 +212,18 @@ class Game:
         except KeyboardInterrupt:
             print("Keyboard Interrupt")
 
+        except Exception as error:
+            print('Got unexpected exception in "_start_game" in Game-class'
+                  f'Message: {error}')
+
         finally:
-            self._stop_robot()
+            self.stop_game()
             print("Game stopped")
 
     def stop_game(self):
         print("Stopping game")
         self._play_game.value = False
 
+        self._stop_robot()
         if self._image_source is not None:
             self._image_source.stop()

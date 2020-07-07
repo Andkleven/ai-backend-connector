@@ -8,10 +8,12 @@ from Box2D import (
 from math import sin, cos
 
 from utils.utils import get_ray_angles
+from itertools import cycle
 
 
-TAGS = ["good_ball", "good_goal", "wall"]
-HIT_DISTANCE_OFFSET = 0.05
+LOWER_TAGS = ["good_ball", "good_goal", "wall"]
+UPPER_TAGS = ["empty", "good_goal", "wall"]
+HIT_DISTANCE_OFFSET = 0.00
 
 
 class RobotHandler(object):
@@ -41,19 +43,33 @@ class RobotHandler(object):
         return self._raycaster.angles
 
     def get_observations(self):
-        return self._observations
+        return self._lower_observations, self._upper_observations
 
     def set_transforms(self, robot1_transform, robot2_transform):
-        self._robot1.position = b2Vec2(
-            robot1_transform['position'][0],
-            robot1_transform['position'][1])
-        self._robot1.angle = \
-            -robot1_transform['rotation'][0] * b2_pi / 180
+        if robot1_transform is None or len(robot1_transform) == 0:
+            self._robot1.active = False
+            self._robot1.position = b2Vec2(5000, 5000)
+        else:
+            self._robot1.active = True
+            self._robot1.position = b2Vec2(
+                robot1_transform['position'][0],
+                robot1_transform['position'][1])
+            self._robot1.angle = \
+                -robot1_transform['rotation'][0] * b2_pi / 180
 
     def update(self):
-        self._observations = self._raycaster.cast(
-            self._robot1.angle,
-            self._robot1.position)
+        if self._robot1.active is False:
+            self._lower_observations = None
+            self._upper_observations = None
+        else:
+            self._lower_observations = self._raycaster.cast(
+                self._robot1.angle,
+                self._robot1.position,
+                LOWER_TAGS)
+            self._upper_observations = self._raycaster.cast(
+                self._robot1.angle,
+                self._robot1.position,
+                UPPER_TAGS)
 
 
 class RayCastClosestCallback(b2RayCastCallback):
@@ -91,13 +107,17 @@ class RayCastClosestCallback(b2RayCastCallback):
 class Raycaster():
     def __init__(self, world, renderer, params):
         self.length = params["image_processing"]["ray_length"]
-        self.diff_len = 0.3
+        self.diff_len = 38
         self.diff_angle = b2_pi / 2
         self.callback_class = RayCastClosestCallback
         self.p1_color = b2Color(0.4, 0.9, 0.4)
-        self.s1_color = b2Color(0.8, 0.8, 0.8)
-        self.s2_color = b2Color(0.9, 0.9, 0.4)
-
+        # self.s1_color = b2Color(0.8, 0.8, 0.8)
+        # self.s2_color = b2Color(0.9, 0.9, 0.4)
+        self._line_colors = [
+            b2Color(0.0, 0.0, 1.0),
+            b2Color(0.0, 1.0, 0.0),
+            b2Color(1.0, 0.0, 0.0)
+        ]
         self.world = world
         self.renderer = renderer
 
@@ -109,13 +129,16 @@ class Raycaster():
     def angles(self):
         return self.ray_angles
 
-    def cast(self, car_angle, position):
+    def cast(self, car_angle, position, tags):
+        line_color_picker = cycle(self._line_colors)
         results = []
         for angle in self.ray_angles:
-            result = self.cast_single(car_angle + angle + b2_pi / 2, position)
+            line_color = next(line_color_picker)
+            result = self.cast_single(
+                car_angle + angle + b2_pi / 2, position, line_color)
             results.append(result)
 
-        single_obs_len = len(TAGS) + 2
+        single_obs_len = len(tags) + 2
         all_obs_len = len(self.ray_angles) * single_obs_len
         all_obs = np.zeros((all_obs_len,), dtype=np.float32)
         for ray_index, hit_result in enumerate(results):
@@ -123,13 +146,11 @@ class Raycaster():
 
             if hit_result[0] is not None:
                 try:
-                    tag_index = TAGS.index(hit_result[0])
-                except ValueError as err:
-                    raise Exception(
-                        f'\n===\nObject tag: "{hit_result[0]}" not found. '
-                        f'The available options are: {TAGS}\n===\n')
-                single_obs[tag_index] = 1.0
-                single_obs[single_obs_len - 1] = hit_result[1]
+                    tag_index = tags.index(hit_result[0])
+                    single_obs[tag_index] = 1.0
+                    single_obs[single_obs_len - 1] = hit_result[1]
+                except ValueError:
+                    single_obs[single_obs_len - 2] = 1.0
             else:
                 single_obs[single_obs_len - 2] = 1.0
 
@@ -139,7 +160,7 @@ class Raycaster():
 
         return all_obs
 
-    def cast_single(self, car_angle, position):
+    def cast_single(self, car_angle, position, line_color):
         rays = []
         start0 = position
         d = (self.length * cos(car_angle), self.length * sin(car_angle))
@@ -175,14 +196,15 @@ class Raycaster():
             point2 = self.renderer.to_screen(ray[1])
 
             if callback.hit:
-                self.draw_hit(point1, callback.point, callback.normal)
+                self.draw_hit(
+                    point1, callback.point, callback.normal, line_color)
                 hits.append(
                     {
                         "type": callback.fixture.body.userData['type'],
                         "distance": callback.fraction
                     })
             else:
-                self.renderer.DrawSegment(point1, point2, self.s1_color)
+                self.renderer.DrawSegment(point1, point2, line_color)
 
         hit_dist = None
         hit_type = None
@@ -193,11 +215,11 @@ class Raycaster():
 
         return hit_type, hit_dist
 
-    def draw_hit(self, start_point, cb_point, cb_normal):
+    def draw_hit(self, start_point, cb_point, cb_normal, line_color):
         cb_point = self.renderer.to_screen(cb_point)
         head = b2Vec2(cb_point) + 0.5 * cb_normal
 
         cb_normal = self.renderer.to_screen(cb_normal)
         self.renderer.DrawPoint(cb_point, 5.0, self.p1_color)
-        self.renderer.DrawSegment(start_point, cb_point, self.s1_color)
-        self.renderer.DrawSegment(cb_point, head, self.s2_color)
+        self.renderer.DrawSegment(start_point, cb_point, line_color)
+        self.renderer.DrawSegment(cb_point, head, line_color)

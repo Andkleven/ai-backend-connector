@@ -5,10 +5,12 @@ import random
 import grpc
 import cv2
 import numpy as np
-from multiprocessing import Process
+from multiprocessing import Process, Value
 
 import proto.RobotSystemCommunication_pb2 as rsc_pb2
 import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
+
+import os
 
 
 class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
@@ -32,6 +34,12 @@ class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
             '{}:{}'.format(self._host_ip, self._port))
         self._stub = rsc_pb2_grpc.SimulationServerStub(self._channel)
 
+        self._available = Value('i', 1)
+
+    @property
+    def available(self):
+        return self._available.value == 1
+
     def _decode_image(self, image):
         image = np.frombuffer(image, dtype=np.uint8)
         return cv2.imdecode(image, flags=1)
@@ -39,20 +47,41 @@ class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
     def frame_available(self):
         return True
 
-    def frame(self):
-        request = rsc_pb2.SimulationScreenCaptureRequest(
-                widht=self._capture_width,
-                height=self._capture_height,
-                imageType=self._image_type,
-                jpgQuality=self._jpeg_quality)
+    def stop(self):
+        pass
 
-        response = self._stub.GetScreenCapture(request)
-        return self._decode_image(response.image)
+    def frame(self):
+        try:
+            request = rsc_pb2.SimulationScreenCaptureRequest(
+                    widht=self._capture_width,
+                    height=self._capture_height,
+                    imageType=self._image_type,
+                    jpgQuality=self._jpeg_quality)
+
+            response = self._stub.GetScreenCapture(request)
+            return self._decode_image(response.image)
+
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                self._available.value = 0
+                print("\n====\nUnitySimulation cannot be reached!\n====\n")
+                raise Exception("Cannot connect to UnitySimulation")
+        except Exception as e:
+            raise e
 
     def make_action(self, action):
-        action_req = rsc_pb2.SimulationActionRequest(action=action)
-        action_res = self._stub.MakeAction(action_req)
-        return action_res.status
+        try:
+            action_req = rsc_pb2.SimulationActionRequest(action=action)
+            action_res = self._stub.MakeAction(action_req)
+            return action_res.status
+
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                self._available.value = 0
+                print("\n====\nUnitySimulation cannot be reached!\n====\n")
+                raise Exception("Cannot connect to UnitySimulation")
+        except Exception as e:
+            raise e
 
 
 # For testing
