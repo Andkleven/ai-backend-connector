@@ -48,7 +48,7 @@ class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
         return True
 
     def stop(self):
-        pass
+        self._available.value = 0
 
     def frame(self):
         try:

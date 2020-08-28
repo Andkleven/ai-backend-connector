@@ -49,6 +49,7 @@ class Game:
         self._game_process = Process(
             target=self._start_game,
             args=(self._play_game,))
+        self._game_process.daemon = True
         self._game_process.start()
 
     def _get_image_source_and_frontend(self, mode, params):

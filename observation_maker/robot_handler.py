@@ -13,7 +13,7 @@ from itertools import cycle
 
 LOWER_TAGS = ["good_ball", "good_goal", "wall"]
 UPPER_TAGS = ["empty", "good_goal", "wall"]
-HIT_DISTANCE_OFFSET = 0.00
+HIT_DISTANCE_OFFSET = 0.02
 
 
 class RobotHandler(object):

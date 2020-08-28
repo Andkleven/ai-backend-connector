@@ -38,7 +38,7 @@ image_processing:
 arena:
     # goals: [[885, 0], [1080, 195], [1080, 0]], # Right upper corner, level 3
     # goals: [[[1080, 840], [840, 1080], [1080, 1080]]] # Right lower corner, level 3
-    good_goal: [[1080, 820], [820, 1080], [1080, 1080]] # Right lower corner, level 5
+    good_goal: [[1080, 930], [930, 1080], [1080, 1080]] # Right lower corner, level 5
     # walls: [  # level 3
     #     [[10, 10], [10, 1070]],
     #     [[10, 1070], [1070, 1070]],
