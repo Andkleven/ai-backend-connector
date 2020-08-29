@@ -13,3 +13,4 @@ pynput
 protobuf
 grpcio-tools
 grpcio
+docopt

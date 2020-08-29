@@ -19,6 +19,14 @@ message RobotActionResponse {
     StatusType status = 1;
 }
 
+message RobotPingRequest {  
+}
+
+message RobotPingResponse {
+    string ipAddress = 1;
+    string macAddress = 2;
+}
+
 service RobotFrontend {
     rpc MakeAction(RobotActionRequest) returns (RobotActionResponse) {}
 }
