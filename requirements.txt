@@ -13,3 +13,4 @@ protobuf
 grpcio-tools
 grpcio
 Flask
+docopt

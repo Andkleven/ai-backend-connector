@@ -1,0 +1,2 @@
+robotsystemcommunication.RobotPingResponse.ipAddress max_size:32
+robotsystemcommunication.RobotPingResponse.macAddress max_size:32
