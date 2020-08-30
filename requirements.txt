@@ -1,5 +1,5 @@
-opencv-python
-opencv-contrib-python
+opencv-python==4.2.0.32
+opencv-contrib-python==4.2.0.32
 imutils
 numpy
 absl-py
@@ -7,10 +7,9 @@ matplotlib
 pandas
 ruamel.yaml
 pynput
-pygame
+pygame==2.0.0.dev10
 Box2D
 protobuf
 grpcio-tools
 grpcio
 Flask
-wheel

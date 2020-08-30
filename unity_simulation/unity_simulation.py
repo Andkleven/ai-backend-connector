@@ -91,22 +91,20 @@ def main(_):
     '''
     Connect to IP cam and print results
     '''
-    # TODO: Code needs updating to take params.yaml
-    unity_sim = UnitySimulation(
-        host_ip="localhost",
-        port="50051")
+    params_file = FLAGS.params_file
+    params = parse_options(params_file)
+
+    unity_sim = UnitySimulation(params)
 
     try:
         while True:
-            image = unity_sim.get_screen_capture(1080, 1080)
-            jpg_as_np = np.frombuffer(image, dtype=np.uint8)
-            frame = cv2.imdecode(jpg_as_np, flags=1)
+            frame = unity_sim.frame()
             cv2.imshow('Unity screen capture', frame)
             cv2.waitKey(1)
 
             random_action = random.randint(0, 6)
             response = unity_sim.make_action(random_action)
-            print(f'Response: {"OK" if response is 0 else "ERROR"}')
+            print(f'Response: {"OK" if response == 0 else "ERROR"}', end='\r')
 
             time.sleep(0.1)
     except KeyboardInterrupt:
@@ -116,11 +114,11 @@ def main(_):
 if __name__ == "__main__":
     from absl import app
     from absl import flags
-    # from utils import parse_options
+    from utils.utils import parse_options
 
     flags.DEFINE_string(
         "params_file",
-        "params.yaml",
+        "params-simu.yaml",
         "Specify the path to params.yaml file",
         short_name="p")
 

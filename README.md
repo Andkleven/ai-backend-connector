@@ -56,3 +56,16 @@ Or this
 ```sh
 raspivid -w 1080 -h 1080 -b 25000000 -cd MJPEG -fps 40 -n -t 0 -o - | gst-launch-1.0 -v fdsrc ! "image/jpeg,width=1640,height=1232",framerate=40/1 ! jpegparse ! rtpjpegpay ! udpsink host=192.168.10.56 port=5200
 ```
+
+
+# Known issues
+
+1. Running `python gui_robot_backend.py -m=simu` causes the following error messages to be printed to the console:
+    ```
+    ALSA lib pcm_dmix.c:1089:(snd_pcm_dmix_open) unable to open slave
+    ```
+    This has most likely something to do with gstreamer or opencv.
+    Some versions of `opencv-python`-package cause the script to crash but `opencv-python==4.2.0.32` and `opencv-contrib-python==4.2.0.32` don't crash.
+
+2. Qt: Session management error: None of the authentication protocols specified are supported
+    Something sets the `SESSION_MANAGER` environmental variable which opencv tries to use. Set the `SESSION_MANAGER` variable to empty string in terminal to fix the issue.
