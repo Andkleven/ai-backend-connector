@@ -1,0 +1,13 @@
+#controls {
+    width: 100%;
+}
+.container {
+    display: flex;
+    flex-flow: row wrap;
+}
+#stream {
+    max-width: 800px;
+}
+#gameInsights {
+    max-width: 300px;
+}

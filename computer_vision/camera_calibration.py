@@ -8,7 +8,6 @@ from absl import flags
 
 import numpy as np
 import cv2
-import PIL
 import os
 from cv2 import aruco
 from mpl_toolkits.mplot3d import Axes3D

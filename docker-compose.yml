@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  robot-backend:
+    build: .
+    image: robotbarckend:1.0.0-ubuntu1804
+    command: ["python3", "web_robot_backend.py"]
+    container_name: robot-backend
+    ports:
+      - 5200:5200/udp
+      - 8080:8080
+    volumes:
+        - ./:/code

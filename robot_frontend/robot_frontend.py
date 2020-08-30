@@ -1,4 +1,5 @@
 import grpc
+from multiprocessing import Value
 
 import proto.RobotSystemCommunication_pb2 as rsc_pb2
 import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
@@ -15,6 +16,12 @@ class RobotFrontend:
         self._robot_speed = params["robot"]["robot_speed"]
         self._turn_speed = params["robot"]["turn_speed"]
         self._move_turn_speed = params["robot"]["move_turn_speed"]
+
+        self._available = Value('i', 1)
+
+    @property
+    def available(self):
+        return self._available.value == 1
 
     def _get_motor_speeds(self, action):
         l_motor = None
@@ -37,12 +44,14 @@ class RobotFrontend:
         elif action == 4:
             l_motor = self._turn_speed
             r_motor = -self._turn_speed
-        # elif action == 5:
-        #     l_motor = -self._move_turn_speed
-        #     r_motor = -self._robot_speed
-        # elif action == 6:
-        #     l_motor = -self._robot_speed
-        #     r_motor = -self._move_turn_speed
+        # Turn right and go forward
+        elif action == 5:
+            l_motor = -self._move_turn_speed
+            r_motor = -self._robot_speed
+        # Turn left and go forward
+        elif action == 6:
+            l_motor = -self._robot_speed
+            r_motor = -self._move_turn_speed
         # No action
         elif action == 0:
             l_motor = 0
@@ -57,9 +66,18 @@ class RobotFrontend:
         '''
         Send motor values to robot
         '''
-        l_motor_speed, r_motor_speed = self._get_motor_speeds(action)
-        motor_values = rsc_pb2.RobotActionRequest(
-            leftMotorAction=l_motor_speed,
-            rightMotorAction=r_motor_speed)
-        response = self._stub.MakeAction(motor_values)
-        return response.status
+        try:
+            l_motor_speed, r_motor_speed = self._get_motor_speeds(action)
+            motor_values = rsc_pb2.RobotActionRequest(
+                leftMotorAction=l_motor_speed,
+                rightMotorAction=r_motor_speed)
+            response = self._stub.MakeAction(motor_values)
+            return response.status
+
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                self._available.value = 0
+                print("\n====\nRobotFrontend cannot be reached!\n====\n")
+                raise Exception("Cannot connect to RobotFrontend")
+        except Exception as e:
+            raise e

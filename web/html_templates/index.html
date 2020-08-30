@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <title>Robot backend</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </head>
+  <body>
+    <div id="controls">
+      <button onclick="startGame('test')">Start testing</button>
+      <button onclick="startGame('prod')">Start game</button>
+      <button onclick="startGame('simu')">Start simulation</button>
+      <button onclick="stopGame()">Stop game</button>
+    </div>
+    <div class='container'>
+      <div id="stream">
+        <h1>Game view</h1>
+        <img id="gameImage" width="720" height="720">
+      </div>
+      <div id="gameInsights">
+        <h1>Game data</h1>
+        <pre id="gameData"></pre>
+      </div>
+    </div>
+  </body>
+</html>
