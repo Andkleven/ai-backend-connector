@@ -85,7 +85,7 @@ class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
 
 
 # For testing
-# Run this with "python -m unity_simulation.unity_simulation"
+# Run this with "python -m ai_simulator.ai_simulator"
 # From the project's root folder
 def main(_):
     '''

@@ -41,7 +41,7 @@ class UnityBrainServer(rsc_pb2_grpc.BrainServerServicer):
 
 
 # For testing
-# Run this with "python -m unity_brain_server.unity_brain_server"
+# Run this with "python -m ai_remote_brain.ai_remote_brain"
 # From the project's root folder
 def main(_):
     '''

@@ -6,7 +6,7 @@ from multiprocessing import Process, Value, Array, Manager
 from pynput import keyboard
 from pynput.keyboard import Key
 
-from robot_frontend.robot_frontend import RobotFrontend
+from ai_robot.ai_robot import RobotFrontend
 from utils.utils import parse_options
 
 

@@ -6,9 +6,9 @@ from ctypes import c_bool
 import numpy as np
 from utils.utils import parse_options
 from utils.constants import SIMU, TEST, PROD
-from unity_simulation.unity_simulation import UnitySimulation
-from unity_brain_server.unity_brain_server import UnityBrainServer
-from robot_frontend.robot_frontend import RobotFrontend
+from ai_simulator.ai_simulator import UnitySimulation
+from ai_remote_brain.ai_remote_brain import UnityBrainServer
+from ai_robot.ai_robot import RobotFrontend
 from reallife_camera_source.gstreamer_video_sink import GStreamerVideoSink
 from computer_vision.image_processer import ImageProcesser
 
