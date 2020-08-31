@@ -39,9 +39,17 @@ class Game:
         self._step_start_time = time.time()
         self._last_log_time = time.time()
         self._reset_game_data()
+
+        if 'simulation' in self._params:
+            width = self._params['simulation']['capture_width']
+            height = self._params['simulation']['capture_height']
+        elif 'ai_video_streamer' in self._params:
+            width = self._params['ai_video_streamer']['capture_width']
+            height = self._params['ai_video_streamer']['capture_height']
+
         image_size = (
-            self._params['simulation']['capture_width'],
-            self._params['simulation']['capture_height'],
+            width,
+            height,
             IMAGE_CHANNELS)
         self._image = np.zeros(image_size, dtype=np.uint8)
 
@@ -55,8 +63,8 @@ class Game:
     def _get_image_source_and_frontend(self, mode, params):
         if mode == PROD or mode == TEST:
             image_source = GStreamerVideoSink(
-                multicast_ip=params["camera"]["multicast_ip"],
-                port=params["camera"]["port"])
+                multicast_ip=params["ai_video_streamer"]["multicast_ip"],
+                port=params["ai_video_streamer"]["port"])
             if mode == PROD:
                 frontend = RobotFrontend(params)
             else:
@@ -208,21 +216,22 @@ class Game:
                     time.sleep(wait_time)
 
             self._stop_robot()
-            print("Game stopped")
 
         except KeyboardInterrupt:
-            print("Keyboard Interrupt")
+            print("\nGame: Keyboard Interrupt")
 
         except Exception as error:
+            self._stop_robot()
+            if self._image_source is not None:
+                self._image_source.stop()
             print('Got unexpected exception in "_start_game" in Game-class'
                   f'Message: {error}')
 
         finally:
-            self.stop_game()
-            print("Game stopped")
+            print("Game: Game stopped")
 
     def stop_game(self):
-        print("Stopping game")
+        print("Game: Stopping game")
         self._play_game.value = False
 
         self._stop_robot()

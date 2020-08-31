@@ -10,18 +10,12 @@ robot:
     turn_speed: 80
     move_turn_speed: 50
 
-camera:
+ai_video_streamer:
     multicast_ip: 224.1.1.1
     port: 5200
-    calib_params: "computer_vision/unity_camera_calibration/calib-params.json"
-
-simulation:
-    ip: "localhost"
-    port: 50051
     capture_width: 1080
     capture_height: 1080
-    image_type: "JPG" # JPG, PNG
-    jpeg_quality: 75
+    calib_params: "computer_vision/camera_calibration_params/default-calib-params.json"
 
 brain_server:
     ip: "localhost"

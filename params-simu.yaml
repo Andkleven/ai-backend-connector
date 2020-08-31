@@ -5,15 +5,12 @@ robot:
     robot2_aruco_code: 3
     aruco_marker_size: 0.15
 
-camera:
-    port: 5200
-    calib_params: "computer_vision/unity_camera_calibration/calib-params.json"
-
 simulation:
     ip: "localhost"
     port: 50051
     capture_width: 1080
     capture_height: 1080
+    calib_params: "computer_vision/camera_calibration_params/default-calib-params.json"
     image_type: "JPG" # JPG, PNG
     jpeg_quality: 75
 

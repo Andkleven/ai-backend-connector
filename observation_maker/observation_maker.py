@@ -30,8 +30,12 @@ class ObservationMaker(Framework):
 
     def __init__(self, params):
         self._params = params
-        self._width = params['simulation']['capture_width']
-        self._height = params['simulation']['capture_height']
+        if 'simulation' in params:
+            self._width = params['simulation']['capture_width']
+            self._height = params['simulation']['capture_height']
+        elif 'ai_video_streamer' in params:
+            self._width = params['ai_video_streamer']['capture_width']
+            self._height = params['ai_video_streamer']['capture_height']
 
         # Pygame runs in another process than the scripts calling
         # for image data so we need to setup a multiprocessing-array

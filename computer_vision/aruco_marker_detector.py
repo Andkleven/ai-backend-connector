@@ -15,7 +15,12 @@ class ArucoMarkerDetector():
         self._robot2_aruco_code = params["robot"]["robot2_aruco_code"]
         self._aruco_detector_parameters = aruco.DetectorParameters_create()
 
-        with open(params["camera"]["calib_params"]) as json_file:
+        if 'simulation' in params:
+            file_path = params["simulation"]["calib_params"]
+        elif 'ai_video_streamer' in params:
+            file_path = params["ai_video_streamer"]["calib_params"]
+
+        with open(file_path) as json_file:
             camera_calib_params = json.load(json_file)
         self._size_of_marker = params["robot"]["aruco_marker_size"]
 

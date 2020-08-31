@@ -25,6 +25,9 @@ Check the instruction from [here](Gstreamer-Install.md)
 ## Drive AI Simulator with AI Backend Connector and AI Remote Brain
 The AI Backend Connector creates observations from the image requested from AI Simulator and sends the observations to the AI Remote Brain which predicts an action and sends it back to AI Backend Connector which send it back to AI Simulator.
 
+### Calibrate AI Video Streamer's video stream
+Check the instruction from [here](Camera-Calibration.md)
+
 ### AI Simulator
 1. Train a brain file in the simulation.
 1. Use the `move-brainfile-to-AIRemoteBrain.sh` to move a brain file to AI Remote Brain.

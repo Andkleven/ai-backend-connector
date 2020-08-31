@@ -56,12 +56,12 @@ def main(_):
             time.sleep(0.2)
 
     except KeyboardInterrupt:
-        print("Keyboard Interrupt")
+        print("\nMain: Keyboard Interrupt")
     except Exception as error:
         print(f'Got unexpected exception in "main" Message: {error}')
     finally:
         game.stop_game()
-        print("Exiting")
+        print("Main: Exiting")
 
 
 if __name__ == "__main__":
