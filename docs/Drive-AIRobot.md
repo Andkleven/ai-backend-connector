@@ -35,7 +35,7 @@ Leave the AI Robot online waiting for commands.
     - AI Video Streamer is sending video feed.
     - AI Robot is online waiting for commands.
     - AI Remote Brain is online
-1. Test the setup. AI Robot is not used nor connected to in test-mode.
+1. Test the setup. AI Robot nor AI Remote Brain are not used nor connected to in test-mode.
     ```sh
     python gui_robot_backend.py -m=test
     ```

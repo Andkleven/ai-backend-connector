@@ -224,8 +224,8 @@ class Game:
             self._stop_robot()
             if self._image_source is not None:
                 self._image_source.stop()
-            print('Got unexpected exception in "_start_game" in Game-class'
-                  f'Message: {error}')
+            print('\n\nGot unexpected exception in "_start_game" in Game-class'
+                  f'Message: {error}\n\n')
 
         finally:
             print("Game: Game stopped")

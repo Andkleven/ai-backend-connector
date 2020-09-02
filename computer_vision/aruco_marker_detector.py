@@ -6,6 +6,7 @@ from cv2 import aruco
 
 
 BORDER_COLOR = (100, 0, 240)
+ANGLE_CORRECTION_DEGREE = 1
 
 
 class ArucoMarkerDetector():
@@ -47,13 +48,16 @@ class ArucoMarkerDetector():
 
         for transform in robot_transforms:
             if transform['aruco_id'] == self._robot1_aruco_code:
-                if robot1_transform is None: robot1_transform = {}
+                if robot1_transform is None:
+                    robot1_transform = {}
                 robot1_transform = transform
             elif transform['aruco_id'] == self._robot2_aruco_code:
-                if robot2_transform is None: robot2_transform = {}
+                if robot2_transform is None:
+                    robot2_transform = {}
                 robot2_transform = transform
             else:
-                if enemy_transforms is None: enemy_transforms = []
+                if enemy_transforms is None:
+                    enemy_transforms = []
                 enemy_transforms.append(transform)
 
         return robot1_transform, robot2_transform, enemy_transforms
@@ -127,7 +131,8 @@ class ArucoMarkerDetector():
             euler_angles = self._rotation_matrix_to_euler_angles(dst)
 
             if only_z_rot:
-                robot_trans_dict['rotation'] = np.array([euler_angles[2]])
+                robot_trans_dict['rotation'] = \
+                    np.array([euler_angles[2] + ANGLE_CORRECTION_DEGREE])
             else:
                 robot_trans_dict['rotation'] = euler_angles
             transforms.append(robot_trans_dict)

@@ -10,7 +10,7 @@ simulation:
     port: 50051
     capture_width: 1080
     capture_height: 1080
-    calib_params: "computer_vision/camera_calibration_params/default-calib-params.json"
+    calib_params: "computer_vision/camera_calibration_params/default-calib-params-simu.json"
     image_type: "JPG" # JPG, PNG
     jpeg_quality: 75
 
@@ -26,9 +26,9 @@ image_processing:
     ball_radius: 23
     max_angle_per_side: 140
     number_of_rays_per_side: 15
-    ray_length: 1150
-    casting_ray_width: 30
-    front_casting_ray_width: 3
+    ray_length: 1152
+    ray_width: 12
+    front_ray_width: 3
     min_ball_area_to_detect: 100
     show_mask: false
 

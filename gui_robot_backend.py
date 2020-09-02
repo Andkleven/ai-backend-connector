@@ -53,7 +53,7 @@ def main(_):
                     f'observation dur: {data["obsCreationDuration"]:05.3f} |'
                     f'brain server dur: {data["brainDuration"]:05.3f} |'
                     f'frontend dur: {data["frontendDuration"]:05.3f}', end='\r')
-            time.sleep(0.2)
+            time.sleep(0.1)
 
     except KeyboardInterrupt:
         print("\nMain: Keyboard Interrupt")

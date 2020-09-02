@@ -13,7 +13,7 @@ from itertools import cycle
 
 LOWER_TAGS = ["good_ball", "good_goal", "wall"]
 UPPER_TAGS = ["empty", "good_goal", "wall"]
-HIT_DISTANCE_OFFSET = 0.02
+HIT_DISTANCE_OFFSET = 0.00
 
 
 class RobotHandler(object):
@@ -106,10 +106,7 @@ class RayCastClosestCallback(b2RayCastCallback):
 
 class Raycaster():
     def __init__(self, world, renderer, params):
-        self.length = params["image_processing"]["ray_length"]
-        self.diff_len = 38
-        self.diff_angle = b2_pi / 2
-        self.callback_class = RayCastClosestCallback
+        self._params = params
         self.p1_color = b2Color(0.4, 0.9, 0.4)
         # self.s1_color = b2Color(0.8, 0.8, 0.8)
         # self.s2_color = b2Color(0.9, 0.9, 0.4)
@@ -118,24 +115,42 @@ class Raycaster():
             b2Color(0.0, 1.0, 0.0),
             b2Color(1.0, 0.0, 0.0)
         ]
+        self._front_line_color = b2Color(0.0, 1.0, 1.0)
         self.world = world
         self.renderer = renderer
 
         self.ray_angles = get_ray_angles(
             2 * b2_pi / 360 * params["image_processing"]["max_angle_per_side"],
-            params["image_processing"]["number_of_rays_per_side"])
+            self._params["image_processing"]["number_of_rays_per_side"])
 
     @property
     def angles(self):
         return self.ray_angles
 
-    def cast(self, car_angle, position, tags):
+    def get_ray_properties(self, angle, line_color_picker):
+        cast_length = self._params["image_processing"]["ray_length"]
+        # For front ray use different values
+        if angle == 0:
+            line_color = self._front_line_color
+            cast_width = self._params["image_processing"]["front_ray_width"]
+        else:
+            line_color = next(line_color_picker)
+            cast_width = self._params["image_processing"]["ray_width"]
+        return line_color, cast_length, cast_width
+
+    def cast(self, car_angle, robot_position, tags):
         line_color_picker = cycle(self._line_colors)
         results = []
         for angle in self.ray_angles:
-            line_color = next(line_color_picker)
-            result = self.cast_single(
-                car_angle + angle + b2_pi / 2, position, line_color)
+            (line_color,
+             cast_length,
+             cast_width) = self.get_ray_properties(angle, line_color_picker)
+
+            result = self.cast_single(car_angle + angle + b2_pi / 2,
+                                      robot_position,
+                                      line_color,
+                                      cast_length,
+                                      cast_width)
             results.append(result)
 
         single_obs_len = len(tags) + 2
@@ -160,24 +175,38 @@ class Raycaster():
 
         return all_obs
 
-    def cast_single(self, car_angle, position, line_color):
+    def cast_single(
+            self,
+            car_angle,
+            robot_position,
+            line_color,
+            cast_length,
+            cast_width):
+        """
+        Casts a single ray which technically is 3 prependicular rays.
+        """
+        diff_angle = b2_pi / 2
         rays = []
-        start0 = position
-        d = (self.length * cos(car_angle), self.length * sin(car_angle))
+
+        # Middle ray
+        start0 = robot_position
+        d = (cast_length * cos(car_angle), cast_length * sin(car_angle))
         end0 = start0 + d
         rays.append([start0, end0])
 
+        # Left ray
         diff1 = (
-            self.diff_len * cos(car_angle - self.diff_angle),
-            self.diff_len * sin(car_angle - self.diff_angle))
-        start1 = position + diff1
+            cast_width * cos(car_angle - diff_angle),
+            cast_width * sin(car_angle - diff_angle))
+        start1 = robot_position + diff1
         end1 = start1 + d
         rays.append([start1, end1])
 
+        # Right ray
         diff2 = (
-            self.diff_len * cos(car_angle + self.diff_angle),
-            self.diff_len * sin(car_angle + self.diff_angle))
-        start2 = position + diff2
+            cast_width * cos(car_angle + diff_angle),
+            cast_width * sin(car_angle + diff_angle))
+        start2 = robot_position + diff2
         end2 = start2 + d
         rays.append([start2, end2])
 
@@ -186,7 +215,7 @@ class Raycaster():
             sector_obs = np.array([0] * 5, dtype=np.float32)
             sector_obs[len(sector_obs) - 2] = 1.0
 
-            callback = self.callback_class()
+            callback = RayCastClosestCallback()
 
             self.world.RayCast(callback, ray[0], ray[1])
 
@@ -201,7 +230,7 @@ class Raycaster():
                 hits.append(
                     {
                         "type": callback.fixture.body.userData['type'],
-                        "distance": callback.fraction
+                        "distance": callback.fraction + 0.009
                     })
             else:
                 self.renderer.DrawSegment(point1, point2, line_color)

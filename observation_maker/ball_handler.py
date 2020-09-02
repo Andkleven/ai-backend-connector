@@ -53,5 +53,5 @@ class BallHandler(object):
 
     def _deactivate_ball(self, ball):
         ball.active = False
-        # Move the ball of the screen
+        # Move the ball off the screen
         ball.position = b2Vec2(5000, 5000)

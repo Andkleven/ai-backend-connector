@@ -4,6 +4,7 @@ This document shows how to drive the AI Simulator with the AI Backend Connector 
 The AI Simulator should be able to run and you should be able to train your agents in the simulation before trying this.
 
 ---
+
 ## Install Gstreamer
 Check the instruction from [here](Gstreamer-Install.md)
 
@@ -20,13 +21,13 @@ Check the instruction from [here](Gstreamer-Install.md)
     ```
 1. A video stream from AI Simulator should appear where the robot moves randomly.
 
+### Calibrate AI Video Streamer's video stream
+Check the instruction from [here](Camera-Calibration.md)
+
 ---
 
 ## Drive AI Simulator with AI Backend Connector and AI Remote Brain
 The AI Backend Connector creates observations from the image requested from AI Simulator and sends the observations to the AI Remote Brain which predicts an action and sends it back to AI Backend Connector which send it back to AI Simulator.
-
-### Calibrate AI Video Streamer's video stream
-Check the instruction from [here](Camera-Calibration.md)
 
 ### AI Simulator
 1. Train a brain file in the simulation.
