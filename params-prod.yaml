@@ -1,13 +1,14 @@
 decision_rate: 10
 
-robot:
+ai_robot:
     ip: "192.168.10.64"
     port: 50053
+    connection_type: "GRPC"  # Either "UDP" or "GRPC" (case insensitive)
     robot1_aruco_code: 2
     robot2_aruco_code: 3
     aruco_marker_size: 0.15
-    robot_speed: 80
-    turn_speed: 80
+    robot_speed: 200
+    turn_speed: 200
     move_turn_speed: 50
 
 ai_video_streamer:

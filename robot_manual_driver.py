@@ -102,6 +102,7 @@ def main(_):
         while True:
             action = keyboard_actions.get_action()
             status = frontend.make_action(action)
+            time.sleep(0.05)
 
     except KeyboardInterrupt:
         print("Closing")

@@ -1,21 +1,27 @@
 import grpc
 from multiprocessing import Value
+import socket
 
 import proto.RobotSystemCommunication_pb2 as rsc_pb2
 import proto.RobotSystemCommunication_pb2_grpc as rsc_pb2_grpc
 
 
+UDP_CONNECTION = "udp"
+GRPC_CONNECTION = "grpc"
+
+
 class RobotFrontend:
     def __init__(self, params):
-        self._robot_ip = params["robot"]["ip"]
-        self._robot_port = params["robot"]["port"]
+        self._robot_ip = params["ai_robot"]["ip"]
+        self._robot_port = params["ai_robot"]["port"]
+        self._robot_conn_type = params["ai_robot"]["connection_type"]
         self._channel = grpc.insecure_channel(
             '{}:{}'.format(self._robot_ip, self._robot_port))
         self._stub = rsc_pb2_grpc.RobotFrontendStub(self._channel)
 
-        self._robot_speed = params["robot"]["robot_speed"]
-        self._turn_speed = params["robot"]["turn_speed"]
-        self._move_turn_speed = params["robot"]["move_turn_speed"]
+        self._robot_speed = params["ai_robot"]["robot_speed"]
+        self._turn_speed = params["ai_robot"]["turn_speed"]
+        self._move_turn_speed = params["ai_robot"]["move_turn_speed"]
 
         self._available = Value('i', 1)
 
@@ -71,13 +77,22 @@ class RobotFrontend:
             motor_values = rsc_pb2.RobotActionRequest(
                 leftMotorAction=l_motor_speed,
                 rightMotorAction=r_motor_speed)
-            response = self._stub.MakeAction(motor_values)
-            return response.status
 
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
+            if self._robot_conn_type.lower() == GRPC_CONNECTION:
+                response = self._stub.MakeAction(motor_values)
+                response = response.status
+            elif self._robot_conn_type.lower() == UDP_CONNECTION:
+                sock = socket.socket(socket.AF_INET,  # Internet
+                                     socket.SOCK_DGRAM)  # UDP
+                sock.sendto(motor_values.SerializeToString(),
+                            (self._robot_ip, self._robot_port))
+                response = "OK"
+            return response
+
+        except grpc.RpcError as error:
+            if error.code() == grpc.StatusCode.UNAVAILABLE:
                 self._available.value = 0
                 print("\n====\nRobotFrontend cannot be reached!\n====\n")
                 raise Exception("Cannot connect to RobotFrontend")
-        except Exception as e:
-            raise e
+        except Exception as error:
+            raise error
