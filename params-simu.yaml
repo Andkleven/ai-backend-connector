@@ -1,6 +1,6 @@
-decision_rate: 10
+decision_rate: 5
 
-robot:
+ai_robot:
     robot1_aruco_code: 1
     robot2_aruco_code: 3
     aruco_marker_size: 0.15
@@ -21,6 +21,7 @@ brain_server:
 image_processing:
     # Value ranges for HSV-values in OpenCV
     # H: 0-179, S: 0-255, V: 0-255
+    # See more about HSV colors at https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
     ball_low_color: [140, 100, 100]
     ball_high_color: [173, 255, 255]
     ball_radius: 23

@@ -26,7 +26,7 @@ class ImageProcesser():
         Create observations for the neural network from input image.
         """
         if image is None:
-            raise('No image given to "image_to_observations"-method')
+            raise 'No image given to "image_to_observations"-method'
         warning_text = ''
         no_friendly_robots = None
         no_balls = None

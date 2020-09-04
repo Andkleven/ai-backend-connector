@@ -1,0 +1,15 @@
+# For this docker-compose file to work you have to build the AI Remote Brain
+# and place it to the 'ai_remote_brain_build'-folder. Remember to also include
+# a brain file in correct folder inside 'ai_remote_brain_build'-folder.
+version: "3.7"
+
+services:
+  ai-remote-brain:
+    image: ubuntu:18.04
+    command: bash -c "cd /ai_remote_brain && ./ai-remote-brain.x86_64 -nographics -batchmode"
+    container_name: ai-remote-brain
+    network_mode: "host"
+    ports:
+      - 50052:50052
+    volumes:
+        - ./ai_remote_brain_build:/ai_remote_brain

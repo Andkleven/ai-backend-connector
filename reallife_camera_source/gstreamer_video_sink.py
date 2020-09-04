@@ -27,7 +27,6 @@ class GStreamerVideoSink():
         Args:
             port (int, optional): UDP port
         """
-
         Gst.init(None)
         self._width = 1080  # TODO: Move to a yaml options file parameter
         self._height = 1080  # TODO: Move to a yaml options file parameter
@@ -52,11 +51,11 @@ class GStreamerVideoSink():
         self._image_size = (self._width, self._height, 3)
         arr_size = self._width * self._height * 3
         self._shared_arr = Array(ctypes.c_uint8, arr_size)
-        self.video_capture_image = np.frombuffer(
-            self._shared_arr.get_obj(),
-            dtype=np.uint8)
-        self.video_capture_image = \
-            np.reshape(self.video_capture_image, self._image_size)
+        # self.video_capture_image = np.frombuffer(
+        #     self._shared_arr.get_obj(),
+        #     dtype=np.uint8)
+        # self.video_capture_image = \
+        #     np.reshape(self.video_capture_image, self._image_size)
 
         self._run()
 
@@ -127,34 +126,40 @@ class GStreamerVideoSink():
         Returns : boolean
             true if frame is available otherwise false
         """
+
         with self._mutex:
             available = type(self._frame) != type(None)
         return available
 
     def stop(self):
-        self.video_pipe.set_state(Gst.State.NULL)
-        self.video_pipe = None
-        self.video_sink = None
-        self._mutex = None
+        if self.video_pipe is not None:
+            self.video_pipe.set_state(Gst.State.NULL)
+            self.video_pipe = None
+            self.video_sink = None
+            self._mutex = None
 
     def _run(self):
         """
         Get frame to update _frame
         """
-        self._frame = np.frombuffer(
-            self._shared_arr.get_obj(),
-            dtype=np.uint8)
-        self._frame = \
-            np.reshape(self._frame, self._image_size)
+        try:
+            self._image_size = (self._width, self._height, 3)
+            self._frame = np.frombuffer(
+                self._shared_arr.get_obj(),
+                dtype=np.uint8)
+            self._frame = \
+                np.reshape(self._frame, self._image_size)
 
-        self._start_gst(
-            [
-                self.video_source,
-                self.video_codec,
-                self.video_decode,
-                self.video_sink_conf
-            ])
-        self.video_sink.connect('new-sample', self._callback)
+            self._start_gst(
+                [
+                    self.video_source,
+                    self.video_codec,
+                    self.video_decode,
+                    self.video_sink_conf
+                ])
+            self.video_sink.connect('new-sample', self._callback)
+        except Exception as error:
+            print(f'Got unexpected exception in "main" Message: {error}')
 
     def _callback(self, sink):
         sample = sink.emit('pull-sample')
@@ -163,7 +168,6 @@ class GStreamerVideoSink():
         # new_frame = self._resize(new_frame, self._width, self._height)
         with self._mutex:
             self._frame[:] = new_frame
-
         return Gst.FlowReturn.OK
 
 

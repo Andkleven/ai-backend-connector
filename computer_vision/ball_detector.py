@@ -38,7 +38,8 @@ class BallDetector():
         # Show ball mask to see in detail the ball detection
         if False:
             cv2.imshow('good_all_mask', good_ball_mask)
-            cv2.imshow('bad_ball_mask', bad_ball_mask)
+            # cv2.imshow('bad_ball_mask', bad_ball_mask)
+            cv2.waitKey(1)
 
         return good_ball_coordinates, bad_ball_coordinates
 
@@ -73,7 +74,7 @@ class BallDetector():
             # Uncomment the below print to see the right
             # value for min_ball_area_to_detect
             # print("Ball area detected: {}".format(cv2.contourArea(contour)))
-            if (cv2.contourArea(contour) < min_ball_area_to_detect):
+            if cv2.contourArea(contour) < min_ball_area_to_detect:
                 continue
 
             if orig_image is not None:
@@ -85,8 +86,10 @@ class BallDetector():
             center_points.append([center_x, center_y])
 
         if len(center_points) == 0:
-            center_points = np.array(center_points, dtype=np.float32)
+            # center_points = np.array(center_points, dtype=np.float32)
             # center_points = np.reshape(center_points, (-1, 1, 2))
+            center_points = None
+
         return center_points
 
     def _blur_and_hsv(self, image):

@@ -1,11 +1,12 @@
 version: "3.7"
 
 services:
-  robot-backend:
+  ai-backend-connector:
     build: .
-    image: robotbarckend:1.0.0-ubuntu1804
+    image: ai-backend-connector:1.0.0-ubuntu1804
     command: ["python3", "web_robot_backend.py"]
-    container_name: robot-backend
+    container_name: ai-backend-connector
+    network_mode: "host"
     ports:
       - 5200:5200/udp
       - 8080:8080

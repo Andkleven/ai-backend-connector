@@ -5,6 +5,7 @@ __pycache__
 *.jpg
 *.pdf
 
+ai_remote_brain_build
 
 computer_vision/camera_calibration_params/*
 !computer_vision/camera_calibration_params/default-calib-params-simu.json

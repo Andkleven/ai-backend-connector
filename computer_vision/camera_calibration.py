@@ -124,7 +124,7 @@ def save_charuco_chessboard():
     ax = fig.add_subplot(1, 1, 1)
     plt.imshow(imboard, cmap=mpl.cm.gray, interpolation="nearest")
     ax.axis("off")
-    plt.savefig("camera_calibration/charuco_chessboard.pdf")
+    plt.savefig("computer_vision/camera_calibration_params/charuco_chessboard.pdf")
 
 
 def calibrate_camera(image_folder):

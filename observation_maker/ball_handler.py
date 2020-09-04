@@ -4,12 +4,13 @@ from Box2D import (
 
 
 class BallHandler(object):
-    def __init__(self, world):
+    def __init__(self, world, params):
         self._world = world
         self._good_balls = []
         self._bad_balls = []
         self._good_ball_transforms = []
         self._bad_ball_transforms = []
+        self._ball_radius = params["image_processing"]["ball_radius"]
 
     def set_transforms(self, good_ball_transforms, bad_ball_transforms):
         self._good_ball_transforms = good_ball_transforms
@@ -41,7 +42,7 @@ class BallHandler(object):
     def _create_ball(self, ball_type):
         # Create balls if needed and update their position
         ball = self._world.CreateStaticBody(
-            shapes=b2CircleShape(pos=(0, 0), radius=24))
+            shapes=b2CircleShape(pos=(0, 0), radius=self._ball_radius))
         ball.userData = {'type': ball_type}
         for fixture in ball.fixtures:
             fixture.sensor = True

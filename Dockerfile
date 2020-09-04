@@ -16,4 +16,9 @@ RUN apt-get install -y libfreetype6-dev
 COPY ./requirements.txt .
 RUN pip3 install -r requirements.txt
 
+RUN echo 'pcm.!default {' >> /etc/asound.conf
+RUN echo '    type plug' >> /etc/asound.conf
+RUN echo '    slave.pcm "null"' >> /etc/asound.conf
+RUN echo '}' >> /etc/asound.conf
+
 WORKDIR /code

@@ -88,7 +88,7 @@ class ObservationMaker(Framework):
             fixture.sensor = True
 
         # Create ball handler
-        self._ball_handler = BallHandler(self.world)
+        self._ball_handler = BallHandler(self.world, params)
 
         # Create tank handler
         self._robot_handler = RobotHandler(

@@ -1,14 +1,14 @@
-decision_rate: 10
+decision_rate: 5
 
 ai_robot:
-    ip: "192.168.10.64"
-    port: 50053
-    connection_type: "GRPC"  # Either "UDP" or "GRPC" (case insensitive)
+    ip: "192.168.10.33"
+    port: 50052
+    connection_type: "udp"  # Either "UDP" or "GRPC" (case insensitive)
     robot1_aruco_code: 2
     robot2_aruco_code: 3
-    aruco_marker_size: 0.15
-    robot_speed: 200
-    turn_speed: 200
+    aruco_marker_size: 0.09
+    robot_speed: 80
+    turn_speed: 80
     move_turn_speed: 50
 
 ai_video_streamer:
@@ -25,19 +25,21 @@ brain_server:
 image_processing:
     # Value ranges for HSV-values in OpenCV
     # H: 0-179, S: 0-255, V: 0-255
-    ball_low_color: [160, 90, 20]
-    ball_high_color: [172, 255, 255]
-    ball_radius: 15
+    # See more about HSV colors at https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
+    ball_low_color: [145, 40, 20]  # [140, 80, 20]
+    ball_high_color: [170, 225, 255]  # [175, 205, 235]
+    ball_radius: 30 # 18
     max_angle_per_side: 140
     number_of_rays_per_side: 15
-    ray_length: 150
-    ray_width: 30
-    front_ray_width: 6
-    min_ball_area_to_detect: 300
+    ray_length: 990
+    ray_width: 15
+    front_ray_width: 3
+    min_ball_area_to_detect: 1000
     show_mask: false
 
 arena:
-    good_goal: [[885, 0], [1080, 195], [1080, 0]] # Right upper corner
+    # good_goal: [[885, 0], [1080, 195], [1080, 0]] # Right upper corner
+    good_goal: [[380, 0], [1080, 700], [1080, 0]] # Right upper corner
     # goals: [[[1080, 840], [840, 1080], [1080, 1080]]] # Right lower corner
     walls: [  # 1.7m x 1.7m level in real world
         [

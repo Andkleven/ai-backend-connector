@@ -11,10 +11,17 @@ ANGLE_CORRECTION_DEGREE = 1
 
 class ArucoMarkerDetector():
     def __init__(self, params):
-        self._aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
-        self._robot1_aruco_code = params["robot"]["robot1_aruco_code"]
-        self._robot2_aruco_code = params["robot"]["robot2_aruco_code"]
+        self._aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+        self._robot1_aruco_code = params["ai_robot"]["robot1_aruco_code"]
+        self._robot2_aruco_code = params["ai_robot"]["robot2_aruco_code"]
         self._aruco_detector_parameters = aruco.DetectorParameters_create()
+        # More Aruco detection tuning parameters shown at below link.
+        # http://amroamroamro.github.io/mexopencv/opencv_contrib/aruco_detect_markers_demo.html
+        self._aruco_detector_parameters.cornerRefinementMethod = \
+            aruco.CORNER_REFINE_SUBPIX
+        self._aruco_detector_parameters.cornerRefinementWinSize = 5
+        self._aruco_detector_parameters.minMarkerDistanceRate = 0.05
+        self._aruco_detector_parameters.cornerRefinementMinAccuracy = 0.5
 
         if 'simulation' in params:
             file_path = params["simulation"]["calib_params"]
@@ -23,7 +30,7 @@ class ArucoMarkerDetector():
 
         with open(file_path) as json_file:
             camera_calib_params = json.load(json_file)
-        self._size_of_marker = params["robot"]["aruco_marker_size"]
+        self._size_of_marker = params["ai_robot"]["aruco_marker_size"]
 
         self._mtx = np.array(camera_calib_params["mtx"], dtype=np.float32)
         self._dist = np.array(camera_calib_params["dist"], dtype=np.float32)
