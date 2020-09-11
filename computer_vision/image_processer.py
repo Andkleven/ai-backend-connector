@@ -2,9 +2,13 @@ from computer_vision.aruco_marker_detector import ArucoMarkerDetector
 from computer_vision.ball_detector import BallDetector
 from observation_maker.observation_maker import ObservationMaker
 
+import cv2
+import numpy as np
+
 
 class ImageProcesser():
     def __init__(self, params):
+        self._params = params
         self._aruco_detector = ArucoMarkerDetector(params)
         self._ball_detector = BallDetector(params)
         self._observation_maker = ObservationMaker(params)
@@ -30,6 +34,10 @@ class ImageProcesser():
         warning_text = ''
         no_friendly_robots = None
         no_balls = None
+
+        # Mask goal area to stop robot from moving when ball is in goal
+        pts = np.array(self._params['arena']['good_goal'])
+        cv2.fillPoly(image, [pts], (255, 255, 255))
 
         # 1) Detect aruco markers for own and enemy robots
         robot1_transform, robot2_transform, enemy_transforms = \

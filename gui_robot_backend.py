@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import print_function
+import colorama
 import os
 from concurrent import futures
 
@@ -29,6 +31,14 @@ flags.DEFINE_string(
     short_name="m")
 
 FLAGS = flags.FLAGS
+
+
+def cursor_up(lines):
+    return '\x1b[{0}A'.format(lines)
+
+
+def cursor_down(lines):
+    return '\x1b[{0}B'.format(lines)
 
 
 def setup_variables(mode):
@@ -74,6 +84,22 @@ def setup_variables(mode):
     return shared_image, shared_array, shared_state, shared_data
 
 
+def print_game_data(shared_data):
+    console_text = \
+        f'FPS 1: {shared_data["actualDurationFPS"]:04.1f} \n' \
+        f'FPS 2: {shared_data["totalDurationFPS"]:04.1f} \n' \
+        f'process time: {shared_data["actualDuration"]:05.3f} \n' \
+        f'done time: {shared_data["totalDuration"]:05.3f} \n' \
+        f'image cap dur: {shared_data["imageCaptureDuration"]:05.3f} \n' \
+        f'obs dur: {shared_data["obsCreationDuration"]:05.3f} \n' \
+        f'brain dur: {shared_data["brainDuration"]:05.3f} \n' \
+        f'frontend dur: {shared_data["frontendDuration"]:05.3f}'
+    line_jumps = console_text.count('\n')+2
+    print(console_text)
+    print(cursor_up(line_jumps))
+    return line_jumps
+
+
 def main(_):
     '''
     Connect to IP cam and print results
@@ -84,6 +110,7 @@ def main(_):
      shared_state,
      shared_data) = setup_variables(mode)
     game = Game(mode, shared_array, shared_state, shared_data)
+    line_jumps = 0
 
     try:
         while True:
@@ -92,24 +119,18 @@ def main(_):
                 cv2.waitKey(1)
             if 'status' not in shared_data:
                 raise Exception("Error in game")
-            print(
-                f'FPS 1: {shared_data["actualDurationFPS"]:04.1f} |'
-                f'FPS 2: {shared_data["totalDurationFPS"]:04.1f} |'
-                f'process time: {shared_data["actualDuration"]:05.3f} |'
-                f'done time: {shared_data["totalDuration"]:05.3f} |'
-                f'image cap dur: {shared_data["imageCaptureDuration"]:05.3f} |'
-                f'obs dur: {shared_data["obsCreationDuration"]:05.3f} |'
-                f'brain dur: {shared_data["brainDuration"]:05.3f} |'
-                f'frontend dur: {shared_data["frontendDuration"]:05.3f}', end='\r')
+            line_jumps = print_game_data(shared_data)
             time.sleep(0.1)
 
     except KeyboardInterrupt:
+        print(cursor_down(line_jumps))
         print("\nMain: Keyboard Interrupt")
     except Exception as error:
+        print(cursor_down(line_jumps))
         print(f'Got unexpected exception in "main" Message: {error}')
     finally:
         with shared_state.get_lock():
-            shared_state = False
+            shared_state.value = False
         print("Main: Exiting")
 
 

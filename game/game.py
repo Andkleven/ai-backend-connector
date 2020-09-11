@@ -27,6 +27,7 @@ class Game:
         self._game_process.start()
 
     def _start_game(self, mode, shared_array, shared_state, shared_data):
+        self._mode = mode
         self._shared_array = shared_array
         if mode == PROD or mode == TEST:
             params = parse_options("params-prod.yaml")
@@ -66,6 +67,7 @@ class Game:
                 # 1) Get image
                 if not self._image_source.frame_available():
                     self._shared_data['status'] = 'No image'
+                    print("\n\n=========== No image\n\n")
                     time.sleep(0.1)
                     continue
                 image = self._image_source.frame()
@@ -81,7 +83,8 @@ class Game:
                 # 2.1) We didn't get observations
                 if lower_obs is None or upper_obs is None:
                     self._shared_data['status'] = 'No observations'
-                    self._stop_robot(mode)
+                    # print("\n\n=========== No observations\n\n")
+                    self._stop_robot()
                     self._end_routine()
                     continue
                 # 2.2) We got observations
@@ -100,7 +103,8 @@ class Game:
                     self._shared_data['status'] = 'Playing game'
                     self._log_time(log_name='frontendDuration')
                 else:
-                    # 3b) Just log status, don't connect to brain server nor frontend
+                    # 3b) Just log status, don't connect to
+                    # brain server nor frontend
                     self._shared_data['status'] = 'Running in test mode'
 
                 self._end_routine()
@@ -110,30 +114,31 @@ class Game:
 
         except Exception as error:
             del self._shared_data['status']
-            self._stop_robot(mode)
+            self._stop_robot()
             self._image_source.stop()
             print('\n\nGot unexpected exception in "_start_game" in Game-class'
                   f'Message: {error}\n\n')
 
         finally:
-            self._stop_robot(mode)
+            self._stop_robot()
             self._image_source.stop()
             print("Game: Game stopped")
 
     def _end_routine(self):
+        time.sleep(0.2)
+        self._stop_robot()
         with self._shared_array.get_lock():
             self._shared_image[:] = self._image_processer.get_image()
         self._log_time(log_name='actualDuration', log_end=True)
-        wait_time = self._step_time - self._shared_data['actualDuration']
+        # wait_time = self._step_time - self._shared_data['actualDuration']
         # if wait_time > 0:
         #     time.sleep(wait_time)
+        time.sleep(0.5)
         self._log_time(log_name='totalDuration', log_end=True)
 
     def _get_image_source_and_frontend(self, mode, params):
         if mode == PROD or mode == TEST:
-            image_source = GStreamerVideoSink(
-                params["ai_video_streamer"]["multicast_ip"],
-                params["ai_video_streamer"]["port"])
+            image_source = GStreamerVideoSink(params)
             if mode == PROD:
                 frontend = RobotFrontend(params)
             else:
@@ -143,14 +148,14 @@ class Game:
             frontend, image_source = simulation, simulation
         return image_source, frontend
 
-    def _stop_robot(self, mode):
+    def _stop_robot(self):
         """
         Stop robot by sending frontend the stop command
         if frontend is used
 
         return : Doesn't return anything
         """
-        if mode == PROD or mode == SIMU:
+        if self._mode == PROD or self._mode == SIMU:
             # Stop the robot from moving
             if self._frontend.available is True:
                 status = self._frontend.make_action(0)

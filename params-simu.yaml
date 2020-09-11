@@ -1,7 +1,7 @@
 decision_rate: 5
 
 ai_robot:
-    robot1_aruco_code: 1
+    robot1_aruco_code: 2
     robot2_aruco_code: 3
     aruco_marker_size: 0.15
 
@@ -22,21 +22,21 @@ image_processing:
     # Value ranges for HSV-values in OpenCV
     # H: 0-179, S: 0-255, V: 0-255
     # See more about HSV colors at https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
-    ball_low_color: [140, 100, 100]
-    ball_high_color: [173, 255, 255]
-    ball_radius: 23
+    ball_low_color: [120, 80, 100]
+    ball_high_color: [175, 255, 255]
+    ball_radius: 35
     max_angle_per_side: 140
     number_of_rays_per_side: 15
     ray_length: 1152
-    ray_width: 12
+    ray_width: 13
     front_ray_width: 3
-    min_ball_area_to_detect: 100
+    min_ball_area_to_detect: 500
     show_mask: false
 
 arena:
     # goals: [[885, 0], [1080, 195], [1080, 0]], # Right upper corner, level 3
     # goals: [[[1080, 840], [840, 1080], [1080, 1080]]] # Right lower corner, level 3
-    good_goal: [[1080, 930], [930, 1080], [1080, 1080]] # Right lower corner, level 5
+    good_goal: [[1080, 550], [550, 1080], [1080, 1080]] # Right lower corner, level 5
     # walls: [  # level 3
     #     [[10, 10], [10, 1070]],
     #     [[10, 1070], [1070, 1070]],

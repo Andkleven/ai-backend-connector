@@ -7,15 +7,15 @@ ai_robot:
     robot1_aruco_code: 2
     robot2_aruco_code: 3
     aruco_marker_size: 0.09
-    robot_speed: 80
-    turn_speed: 80
+    robot_speed: 50
+    turn_speed: 55
     move_turn_speed: 50
 
 ai_video_streamer:
     multicast_ip: 224.1.1.1
     port: 5200
-    capture_width: 1080
-    capture_height: 1080
+    capture_width: 1232
+    capture_height: 1232
     calib_params: "computer_vision/camera_calibration_params/default-calib-params-prod.json"
 
 brain_server:
@@ -26,9 +26,9 @@ image_processing:
     # Value ranges for HSV-values in OpenCV
     # H: 0-179, S: 0-255, V: 0-255
     # See more about HSV colors at https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
-    ball_low_color: [145, 40, 20]  # [140, 80, 20]
-    ball_high_color: [170, 225, 255]  # [175, 205, 235]
-    ball_radius: 30 # 18
+    ball_low_color: [145, 80, 60]  # [140, 80, 20]
+    ball_high_color: [175, 205, 235]  # [175, 205, 235]
+    ball_radius: 35 # 18
     max_angle_per_side: 140
     number_of_rays_per_side: 15
     ray_length: 990
@@ -39,14 +39,14 @@ image_processing:
 
 arena:
     # good_goal: [[885, 0], [1080, 195], [1080, 0]] # Right upper corner
-    good_goal: [[380, 0], [1080, 700], [1080, 0]] # Right upper corner
+    good_goal: [[532, 20], [1212, 720], [1212, 20]] # Right upper corner
     # goals: [[[1080, 840], [840, 1080], [1080, 1080]]] # Right lower corner
     walls: [  # 1.7m x 1.7m level in real world
         [
             [16, 16],
-            [16, 1060],
-            [1060, 1060],
-            [1060, 16],
+            [16, 1212],
+            [1212, 1212],
+            [1212, 16],
             [16, 16]
         ],
         [
@@ -56,15 +56,15 @@ arena:
             [16, 16]
         ],
         [
-            [16, 850],
-            [230, 1060],
-            [16, 1060],
-            [16, 850]
+            [16, 1002],
+            [230, 1212],
+            [16, 1212],
+            [16, 1002]
         ],
         [
-            [850, 1060],
-            [1060, 850],
-            [1060, 1060],
-            [850, 1060]
+            [1002, 1212],
+            [1212, 1002],
+            [1212, 1212],
+            [1002, 1212]
         ]
     ]

@@ -37,7 +37,7 @@ class BallDetector():
 
         # Show ball mask to see in detail the ball detection
         if False:
-            cv2.imshow('good_all_mask', good_ball_mask)
+            cv2.imshow('good_all_mask', good_ball_image)
             # cv2.imshow('bad_ball_mask', bad_ball_mask)
             cv2.waitKey(1)
 

@@ -391,7 +391,7 @@ class PygameFramework(FrameworkBase):
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt -> Exiting")
-            pygame.quit()
+            # pygame.quit()
 
         self.world.contactListener = None
         self.world.destructionListener = None

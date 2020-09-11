@@ -1,6 +1,7 @@
 from Box2D import (
     b2Vec2,
-    b2CircleShape)
+    b2CircleShape,
+    b2PolygonShape)
 
 
 class BallHandler(object):

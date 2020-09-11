@@ -227,10 +227,15 @@ class Raycaster():
             if callback.hit:
                 self.draw_hit(
                     point1, callback.point, callback.normal, line_color)
+
+                temp_dist = callback.fraction + 0.009
+                if callback.fixture.body.userData['type'] is "wall":
+                    temp_dist = temp_dist
+
                 hits.append(
                     {
                         "type": callback.fixture.body.userData['type'],
-                        "distance": callback.fraction + 0.009
+                        "distance": temp_dist
                     })
             else:
                 self.renderer.DrawSegment(point1, point2, line_color)

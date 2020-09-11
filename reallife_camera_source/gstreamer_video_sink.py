@@ -22,14 +22,18 @@ class GStreamerVideoSink():
         video_source (string): Udp source ip and port
     """
 
-    def __init__(self, multicast_ip, port):
+    def __init__(self, params):
         """Summary
         Args:
             port (int, optional): UDP port
         """
         Gst.init(None)
-        self._width = 1080  # TODO: Move to a yaml options file parameter
-        self._height = 1080  # TODO: Move to a yaml options file parameter
+
+        multicast_ip = params["ai_video_streamer"]["multicast_ip"]
+        port = str(params["ai_video_streamer"]["port"])
+        self._width = params['ai_video_streamer']['capture_width']
+        self._height = params['ai_video_streamer']['capture_height']
+
         self._frame = None
         self._mutex = Lock()
 
@@ -126,7 +130,6 @@ class GStreamerVideoSink():
         Returns : boolean
             true if frame is available otherwise false
         """
-
         with self._mutex:
             available = type(self._frame) != type(None)
         return available
@@ -171,12 +174,16 @@ class GStreamerVideoSink():
         return Gst.FlowReturn.OK
 
 
+# Main for testing video connection. Run with below command executed in
+# project's root folder. Make sure 'params-prod.yaml' file has
+# 'ai_video_streamer' group and correct parameters set.
+# python -m reallife_camera_source.gstreamer_video_sink
 if __name__ == '__main__':
+    from utils.utils import parse_options
     # Create the video object
     # Add port= if is necessary to use a different one
-    multicast_ip = "224.1.1.1"
-    port = "5200"
-    video = GStreamerVideoSink(multicast_ip, port)
+    params = parse_options("params-prod.yaml")
+    video = GStreamerVideoSink(params)
 
     while True:
         # Wait for the next frame
