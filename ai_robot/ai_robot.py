@@ -36,28 +36,28 @@ class RobotFrontend:
         # Forward
         if action == 1:
             # negative speed is forward in bot's orientation
-            l_motor = -self._robot_speed
-            r_motor = -self._robot_speed
-        # Backward
-        elif action == 2:
             l_motor = self._robot_speed
             r_motor = self._robot_speed
+        # Backward
+        elif action == 2:
+            l_motor = -self._robot_speed
+            r_motor = -self._robot_speed
         # Turn Clockwise
         elif action == 3:
-            l_motor = -self._turn_speed
-            r_motor = self._turn_speed
-        # Turn Anti Clockwise
-        elif action == 4:
             l_motor = self._turn_speed
             r_motor = -self._turn_speed
+        # Turn Anti Clockwise
+        elif action == 4:
+            l_motor = -self._turn_speed
+            r_motor = self._turn_speed
         # Turn right and go forward
         elif action == 5:
-            l_motor = -self._move_turn_speed
-            r_motor = -self._robot_speed
+            l_motor = self._move_turn_speed
+            r_motor = self._robot_speed
         # Turn left and go forward
         elif action == 6:
-            l_motor = -self._robot_speed
-            r_motor = -self._move_turn_speed
+            l_motor = self._robot_speed
+            r_motor = self._move_turn_speed
         # No action
         elif action == 0:
             l_motor = 0
