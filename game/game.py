@@ -125,15 +125,12 @@ class Game:
             print("Game: Game stopped")
 
     def _end_routine(self):
-        time.sleep(0.2)
-        self._stop_robot()
         with self._shared_array.get_lock():
             self._shared_image[:] = self._image_processer.get_image()
         self._log_time(log_name='actualDuration', log_end=True)
-        # wait_time = self._step_time - self._shared_data['actualDuration']
-        # if wait_time > 0:
-        #     time.sleep(wait_time)
-        time.sleep(0.5)
+        wait_time = self._step_time - self._shared_data['actualDuration']
+        if wait_time > 0:
+            time.sleep(wait_time)
         self._log_time(log_name='totalDuration', log_end=True)
 
     def _get_image_source_and_frontend(self, mode, params):

@@ -86,6 +86,7 @@ def setup_variables(mode):
 
 def print_game_data(shared_data):
     console_text = \
+        f'Status: {shared_data["status"]} \n' \
         f'FPS 1: {shared_data["actualDurationFPS"]:04.1f} \n' \
         f'FPS 2: {shared_data["totalDurationFPS"]:04.1f} \n' \
         f'process time: {shared_data["actualDuration"]:05.3f} \n' \

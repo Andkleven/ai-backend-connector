@@ -117,22 +117,23 @@ def _calibrate_camera(allCorners, allIds, imsize, aruco_dict, board):
 
 
 def save_charuco_chessboard():
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
+    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     board = aruco.CharucoBoard_create(11, 8, 10, 7, aruco_dict)
     imboard = board.draw((500, 500))
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     plt.imshow(imboard, cmap=mpl.cm.gray, interpolation="nearest")
     ax.axis("off")
-    plt.savefig("computer_vision/camera_calibration_params/charuco_chessboard.pdf")
+    plt.savefig("computer_vision/camera_calibration_params/"
+                "charuco_chessboard.pdf")
 
 
 def calibrate_camera(image_folder):
     images = [
-        image_folder + f for f in os.listdir(
+        os.path.join(image_folder, f) for f in os.listdir(
             image_folder) if f.endswith(".png") or f.endswith(".jpg")]
     print(images)
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
+    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     board = aruco.CharucoBoard_create(11, 8, 10, 7, aruco_dict)
     allCorners, allIds, imsize = _read_chessboards(images, aruco_dict, board)
     ret, mtx, dist, rvecs, tvecs = _calibrate_camera(

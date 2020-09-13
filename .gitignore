@@ -11,3 +11,5 @@ computer_vision/camera_calibration_params/*
 !computer_vision/camera_calibration_params/default-calib-params-simu.json
 !computer_vision/camera_calibration_params/default-calib-params-prod.json
 *.whl
+
+gitcommitmessage.txt
