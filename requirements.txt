@@ -14,3 +14,4 @@ grpcio-tools
 grpcio
 Flask
 colorama
+docopt
