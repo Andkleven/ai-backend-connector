@@ -10,6 +10,7 @@ Options:
     --port PORT        Port to use. [default: 50052]
     --timeout=TIMEOUT  Timeout for motor command in milliseconds.
                        [default: 200]
+    --broadcast        Broadcast the request.
 """
 import sys
 import os.path
@@ -39,12 +40,14 @@ if __name__ == "__main__":
             ping=rsc_pb2.RobotPingRequest())
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('', 0))
+    if opts['--broadcast']:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     sock.sendto(request.SerializeToString(), (opts['--address'], int(opts['--port'])))
     sock.settimeout(int(opts['--socket-timeout']))
     try:
         data, from_addr = sock.recvfrom(100)
         reply = rsc_pb2.RobotResponse()
         reply.ParseFromString(data)
-        print(reply)
+        print(f"{from_addr[0]}#{from_addr[1]}:\n{reply}")
     except socket.timeout as e:
         print("no reply")
