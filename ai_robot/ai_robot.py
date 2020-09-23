@@ -22,7 +22,7 @@ class RobotFrontend:
         self._robot_speed = params["ai_robot"]["robot_speed"]
         self._turn_speed = params["ai_robot"]["turn_speed"]
         self._move_turn_speed = params["ai_robot"]["move_turn_speed"]
-
+        self._action_timeout = int(params["ai_robot"]["action_timeout"])
         self._available = Value('i', 1)
 
     @property
@@ -74,9 +74,12 @@ class RobotFrontend:
         '''
         try:
             l_motor_speed, r_motor_speed = self._get_motor_speeds(action)
-            motor_values = rsc_pb2.RobotActionRequest(
-                leftMotorAction=l_motor_speed,
-                rightMotorAction=r_motor_speed)
+            motor_values = rsc_pb2.RobotRequest(
+                reqId=1,
+                act=rsc_pb2.RobotActionRequest(
+                    leftMotorAction=l_motor_speed,
+                    rightMotorAction=r_motor_speed,
+                    actionTimeout=self._action_timeout))
 
             if self._robot_conn_type.lower() == GRPC_CONNECTION:
                 response = self._stub.MakeAction(motor_values)
