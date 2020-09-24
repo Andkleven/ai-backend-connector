@@ -118,7 +118,7 @@ def main(_):
             with shared_array.get_lock():
                 cv2.imshow('Game View', shared_image)
                 cv2.waitKey(1)
-            if 'status' not in shared_data:
+            if shared_state.value is False:
                 raise Exception("Error in game")
             line_jumps = print_game_data(shared_data)
             time.sleep(0.1)

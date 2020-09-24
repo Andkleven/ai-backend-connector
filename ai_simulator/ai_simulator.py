@@ -69,9 +69,14 @@ class UnitySimulation(rsc_pb2_grpc.SimulationServerServicer):
         except Exception as e:
             raise e
 
-    def make_action(self, action):
+    def make_actions(self, actions_dict):
         try:
-            action_req = rsc_pb2.SimulationActionRequest(action=action)
+            action_req = rsc_pb2.SimulationActionRequest()
+            for key in actions_dict.keys():
+                new_action = rsc_pb2.RobotAction(arucoMarkerID=key,
+                                                 action=actions_dict[key])
+                action_req.actions.append(new_action)
+            # action_req = rsc_pb2.SimulationActionRequest(actions=actions)
             action_res = self._stub.MakeAction(action_req)
             return action_res.status
 
@@ -96,18 +101,30 @@ def main(_):
 
     unity_sim = UnitySimulation(params)
 
+    robot_actions = {}
+    for aruco in params["ai_robots"]["robots"]:
+        print(f'Aruco marker: {aruco["aruco_code"]}')
+        robot_actions[aruco["aruco_code"]] = 0
+
     try:
         while True:
             frame = unity_sim.frame()
             cv2.imshow('Unity screen capture', frame)
             cv2.waitKey(1)
 
-            random_action = random.randint(0, 6)
-            response = unity_sim.make_action(random_action)
-            print(f'Response: {"OK" if response == 0 else "ERROR"}', end='\r')
+            for key in robot_actions.keys():
+                robot_actions[key] = random.randint(0, 5)
+
+            response = unity_sim.make_actions(robot_actions)
+            print(f'Response: {"OK" if response == 1 else "ERROR"}', end='\r')
 
             time.sleep(0.1)
     except KeyboardInterrupt:
+        print("Keyboard Interruption")
+    finally:
+        for key in robot_actions.keys():
+            robot_actions[key] = 0
+        response = unity_sim.make_actions(robot_actions)
         print("Exiting")
 
 

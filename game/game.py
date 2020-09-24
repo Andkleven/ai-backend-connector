@@ -1,4 +1,5 @@
 from concurrent import futures
+import traceback
 import cv2
 import time
 from multiprocessing import Process, Array
@@ -21,43 +22,47 @@ class Game:
     def __init__(self, mode, shared_array, shared_state, shared_data):
         print(f'Starting game in {mode}-mode')
         self._game_process = Process(
-            target=self._start_game,
+            target=self._start_game_loop,
             args=(mode, shared_array, shared_state, shared_data))
         self._game_process.daemon = True
         self._game_process.start()
 
-    def _start_game(self, mode, shared_array, shared_state, shared_data):
-        self._mode = mode
-        self._shared_array = shared_array
-        if mode == PROD or mode == TEST:
-            params = parse_options("params-prod.yaml")
-        else:
-            params = parse_options("params-simu.yaml")
-
-        if 'simulation' in params:
-            width = params['simulation']['capture_width']
-            height = params['simulation']['capture_height']
-        elif 'ai_video_streamer' in params:
-            width = params['ai_video_streamer']['capture_width']
-            height = params['ai_video_streamer']['capture_height']
-        image_size = (width, height, 3)
-        arr_size = width * height * 3
-
-        self._step_time = 1 / params['decision_rate']
-        self._image_source, self._frontend = \
-            self._get_image_source_and_frontend(mode, params)
-
-        self._image_processer = ImageProcesser(params)
-        if mode == PROD or mode == SIMU:
-            brain_server = UnityBrainServer(params)
-
-        shared_image = np.frombuffer(
-            shared_array.get_obj(),
-            dtype=np.uint8)
-        self._shared_image = np.reshape(shared_image, image_size)
-        self._shared_data = shared_data
-
+    def _start_game_loop(self, mode, shared_array, shared_state, shared_data):
         try:
+            self._mode = mode
+            self._shared_data = shared_data
+            self._shared_array = shared_array
+            if mode == PROD or mode == TEST:
+                params = parse_options("params-prod.yaml")
+            else:
+                params = parse_options("params-simu.yaml")
+
+            self._robot_arucos = []
+            for item in params["ai_robots"]["robots"]:
+                self._robot_arucos.append(item['aruco_code'])
+
+            if 'simulation' in params:
+                width = params['simulation']['capture_width']
+                height = params['simulation']['capture_height']
+            elif 'ai_video_streamer' in params:
+                width = params['ai_video_streamer']['capture_width']
+                height = params['ai_video_streamer']['capture_height']
+            image_size = (width, height, 3)
+            arr_size = width * height * 3
+
+            self._step_time = 1 / params['decision_rate']
+            self._image_source, self._frontend = \
+                self._get_image_source_and_frontend(mode, params)
+
+            self._image_processer = ImageProcesser(params)
+            if mode == PROD or mode == SIMU:
+                brain_server = UnityBrainServer(params)
+
+            shared_image = np.frombuffer(
+                shared_array.get_obj(),
+                dtype=np.uint8)
+            self._shared_image = np.reshape(shared_image, image_size)
+
             while True:
                 self._log_time(log_start=True)
                 with shared_state.get_lock():
@@ -76,30 +81,32 @@ class Game:
                 # 2) Get observations from image
                 # The _ and __ variables are placeholders for the second
                 # robot and it's observations
-                lower_obs, upper_obs, _, __ = \
+                robot_observations_dict = \
                     self._image_processer.image_to_observations(image=image)
                 self._log_time(log_name='obsCreationDuration')
 
                 # 2.1) We didn't get observations
-                if lower_obs is None or upper_obs is None:
+                if not robot_observations_dict:
                     self._shared_data['status'] = 'No observations'
                     # print("\n\n=========== No observations\n\n")
-                    self._stop_robot()
+                    self._stop_robots()
                     self._end_routine()
                     continue
                 # 2.2) We got observations
-                else:
-                    self._shared_data['lowerObs'] = lower_obs
-                    self._shared_data['upperObs'] = upper_obs
+                for aruco_id in robot_observations_dict.keys():
+                    self._shared_data[f'robot_{aruco_id}_lower_obs'] = \
+                        robot_observations_dict[aruco_id]['lower_obs']
+                    self._shared_data[f'robot_{aruco_id}_upper_obs'] = \
+                        robot_observations_dict[aruco_id]['lower_obs']
                     self._shared_data['angles'] = self._image_processer.angles
 
                 if mode == PROD or mode == SIMU:
                     # 3a) Get action from brain with the observations
-                    action = brain_server.get_action(lower_obs, upper_obs)
+                    actions = brain_server.get_actions(robot_observations_dict)
                     self._log_time(log_name='brainDuration')
 
                     # 4) Send the action to frontend
-                    _ = self._frontend.make_action(action)
+                    _ = self._frontend.make_actions(actions)
                     self._shared_data['status'] = 'Playing game'
                     self._log_time(log_name='frontendDuration')
                 else:
@@ -113,14 +120,14 @@ class Game:
             print("\nGame: Keyboard Interrupt")
 
         except Exception as error:
-            del self._shared_data['status']
-            self._stop_robot()
+            traceback.print_exc()
+            shared_state.value = False
             self._image_source.stop()
-            print('\n\nGot unexpected exception in "_start_game" in Game-class'
-                  f'Message: {error}\n\n')
+            print('\n=====\nGot unexpected exception in "_start_game" in '
+                  f'Game-class. Message: {error}\n=====\n')
 
         finally:
-            self._stop_robot()
+            self._stop_robots()
             self._image_source.stop()
             print("Game: Game stopped")
 
@@ -145,7 +152,7 @@ class Game:
             frontend, image_source = simulation, simulation
         return image_source, frontend
 
-    def _stop_robot(self):
+    def _stop_robots(self):
         """
         Stop robot by sending frontend the stop command
         if frontend is used
@@ -155,7 +162,10 @@ class Game:
         if self._mode == PROD or self._mode == SIMU:
             # Stop the robot from moving
             if self._frontend.available is True:
-                status = self._frontend.make_action(0)
+                robot_actions = {}
+                for aruco in self._robot_arucos:
+                    robot_actions[aruco] = 0
+                status = self._frontend.make_actions(robot_actions)
 
     def _log_time(self, log_name=None, log_start=False, log_end=False):
         """

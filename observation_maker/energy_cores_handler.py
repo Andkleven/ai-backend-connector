@@ -4,7 +4,7 @@ from Box2D import (
     b2PolygonShape)
 
 
-class BallHandler(object):
+class EnergyCoresHandler(object):
     def __init__(self, world, params):
         self._world = world
         self._good_balls = []

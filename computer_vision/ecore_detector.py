@@ -6,44 +6,64 @@ import imutils
 ITERATIONS = 2
 
 
-class BallDetector():
+class EnergyCoreDetector():
     def __init__(self, params):
         self._min_ball_area_to_detect = \
             params["image_processing"]["min_ball_area_to_detect"]
 
         # Value ranges for HSV-values in OpenCV
         # H: 0-179, S: 0-255, V: 0-255
-        self._low_ball_color = np.array(
-            params["image_processing"]["ball_low_color"], dtype=np.float32)
-        self._high_ball_color = np.array(
-            params["image_processing"]["ball_high_color"], dtype=np.float32)
+        self._pos_ecore_low_color = np.array(
+            params["image_processing"]["pos_energy_core_low_color"],
+            dtype=np.float32)
+        self._pos_ecore_high_color = np.array(
+            params["image_processing"]["pos_energy_core_high_color"],
+            dtype=np.float32)
 
-    def get_ball_transforms(self, image):
+        self._neg_ecore_low_color = np.array(
+            params["image_processing"]["neg_energy_core_low_color"],
+            dtype=np.float32)
+        self._neg_ecore_high_color = np.array(
+            params["image_processing"]["neg_energy_core_high_color"],
+            dtype=np.float32)
+
+    def get_ecore_transforms(self, image):
         if image is None:
             return None, None
 
         hsv_image = self._blur_and_hsv(image)
-
-        good_ball_image, good_ball_mask = self._find_balls_by_color(
+        pos_ecore_coordinates = self._image_to_center_points(
             hsv_image,
             image,
-            self._low_ball_color,
-            self._high_ball_color)
-        good_ball_coordinates = self._find_center_points(
-            good_ball_mask,
-            self._min_ball_area_to_detect)
+            self._pos_ecore_low_color,
+            self._pos_ecore_high_color)
+        neg_ecore_coordinates = self._image_to_center_points(
+            hsv_image,
+            image,
+            self._neg_ecore_low_color,
+            self._neg_ecore_high_color)
 
-        bad_ball_coordinates = None
+        return pos_ecore_coordinates, neg_ecore_coordinates
+
+    def _image_to_center_points(
+            self,
+            hsv_image,
+            orig_image,
+            low_color,
+            high_color,
+            debug_name=False):
+        ecore_image, ecore_mask = self._find_ecores_by_color(
+            hsv_image, orig_image, low_color, high_color)
+        ecore_coordinates = self._find_center_points(
+            ecore_mask, self._min_ball_area_to_detect)
 
         # Show ball mask to see in detail the ball detection
-        if False:
-            cv2.imshow('good_all_mask', good_ball_image)
-            # cv2.imshow('bad_ball_mask', bad_ball_mask)
+        if debug_name:
+            cv2.imshow(debug_name, ecore_mask)
             cv2.waitKey(1)
+        return ecore_coordinates
 
-        return good_ball_coordinates, bad_ball_coordinates
-
-    def _find_balls_by_color(
+    def _find_ecores_by_color(
             self,
             hsv_image,
             orig_image,

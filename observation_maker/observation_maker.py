@@ -12,16 +12,18 @@ from Box2D import (
 import cv2
 import time
 
-from observation_maker.robot_handler import RobotHandler
-from observation_maker.ball_handler import BallHandler
+from observation_maker.friendly_robots_handler import FriendlyRobotsHandler
+from observation_maker.enemy_robots_handler import EnemyRobotsHandler
+from observation_maker.energy_cores_handler import EnergyCoresHandler
 from utils.utils import print_observations
 import ctypes
 from multiprocessing import Lock, Array
-
+from ruamel.yaml.comments import CommentedSeq
 import os
 
 
 IMAGE_CHANNELS = 4
+VALID_LIST_TYPES = (CommentedSeq, list, np.ndarray)
 
 
 class ObservationMaker(Framework):
@@ -80,76 +82,99 @@ class ObservationMaker(Framework):
                 fixture.sensor = True
 
         # Create goals
-        self.good_goal = self.world.CreateStaticBody(position=(0, 0))
-        self.good_goal.CreateEdgeChain(
-            self._coords_mod(params['arena']['good_goal']))
-        self.good_goal.userData = {'type': 'good_goal'}
-        for fixture in self.good_goal.fixtures:
+        self.friendly_goal = self.world.CreateStaticBody(position=(0, 0))
+        self.friendly_goal.CreateEdgeChain(
+            self._coords_mod(params['arena']['friendly_goal']))
+        self.friendly_goal.userData = {'type': 'friendly_goal'}
+        for fixture in self.friendly_goal.fixtures:
             fixture.sensor = True
 
-        # Create ball handler
-        self._ball_handler = BallHandler(self.world, params)
+        self.enemy_goal = self.world.CreateStaticBody(position=(0, 0))
+        self.enemy_goal.CreateEdgeChain(
+            self._coords_mod(params['arena']['enemy_goal']))
+        self.enemy_goal.userData = {'type': 'enemy_goal'}
+        for fixture in self.enemy_goal.fixtures:
+            fixture.sensor = True
 
-        # Create tank handler
-        self._robot_handler = RobotHandler(
+        # Create energy cores handler
+        self._ecores_handler = EnergyCoresHandler(self.world, params)
+
+        # Create friendly robots handler
+        self._friendly_robots_handler = FriendlyRobotsHandler(
             self.world,
             self.renderer,
             params)
+
+        # Create enemy robots handler
+        self._enemy_robots_handler = EnemyRobotsHandler(
+            self.world,
+            self.renderer)
 
         self._message = None
         self._stepper = self.run(single_step=True)
 
     @property
     def angles(self):
-        return self._robot_handler.angles
+        return self._friendly_robots_handler.angles
 
     def get_image(self):
         image = self.GetScreenCapture()
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
         return image
 
-    def _coords_mod(self, opencv_coords_list):
+    def _coords_mod(self, opencv_coords):
         """
         Transforms OpenCV's coordinates to box2d's coordinates.
         OpenCV's coordinate [0, 0] is in top left corner and [max_x, max_y]
         is in lower right corder. In Box2D the [0, 0] is in the middle,
         [max_x / 2, max_y / 2] is in top right corner
 
-        opencv_coords_list : list [[x1, y1], [x2, y2], [x3, y3], ... ]
+        opencv_coords : list [[x1, y1], [x2, y2], [x3, y3], ... ]
             List of coordinate pairs in list
 
         return : list [[x1, y1], [x2, y2], [x3, y3], ... ]
             List of coordinate pairs in list
         """
-        def mod(opencv_coords_list):
-            return [
-                    [coords[0] - self._width / 2,
-                     -coords[1] + self._height / 2]
-                    for coords in opencv_coords_list]
+        def mod(opencv_coords):
+            # If list in the list
+            if isinstance(opencv_coords[0], VALID_LIST_TYPES):
+                return [[coords[0] - self._width / 2,
+                        -coords[1] + self._height / 2]
+                        for coords in opencv_coords]
+            # If scalars in the list
+            else:
+                return [opencv_coords[0] - self._width / 2,
+                        -opencv_coords[1] + self._height / 2]
 
-        if opencv_coords_list is None:
-            return None
-        if type(opencv_coords_list) is dict:
-            opencv_coords_list['position'] = \
-                mod([opencv_coords_list['position']])[0]
-            return opencv_coords_list
-        return mod(opencv_coords_list)
+        if not opencv_coords:
+            return opencv_coords
+        elif isinstance(opencv_coords, dict):
+            for key in opencv_coords.keys():
+                opencv_coords[key]['position'] = \
+                    mod(opencv_coords[key]['position'])
+            return opencv_coords
+        elif isinstance(opencv_coords, VALID_LIST_TYPES):
+            return mod(opencv_coords)
+        else:
+            raise Exception('\n=====\nUnsupported data type. Expected a dict or '
+                            f'a list but got: {type(opencv_coords)}\n=====\n'
+                            f'{opencv_coords}\n=====\n')
 
     def update_image(self, image, message):
         self.SetBackground(image)
         self._message = message
-        self._ball_handler.set_transforms([], [])
-        self._robot_handler.set_transforms([], [])
+        self._ecores_handler .set_transforms([], [])
+        self._friendly_robots_handler.set_transforms({}, {})
+        self._enemy_robots_handler.set_transforms({}, {})
         self._make_step()
 
     def get_observations(
             self,
             image,
-            robot1_transform,
-            robot2_transform,
-            good_ball_transforms,
-            bad_ball_transforms,
-            enemy_transforms):
+            friendly_trans_dict,
+            enemy_trans_dict,
+            pos_ecore_transforms,
+            neg_ecore_transforms):
         """
         Get observations made by the simulation
         """
@@ -157,32 +182,34 @@ class ObservationMaker(Framework):
         # for visual purposes. Not needed for getting observations.
         self.SetBackground(image)
 
-        # Setting transforms of balls and robot
-        self._ball_handler.set_transforms(
-            self._coords_mod(good_ball_transforms),
-            self._coords_mod(bad_ball_transforms))
-        # self._enemy_handler.update(enemy_transforms)
-        self._robot_handler.set_transforms(
-            self._coords_mod(robot1_transform),
-            self._coords_mod(robot2_transform))
+        self._ecores_handler.set_transforms(
+            self._coords_mod(pos_ecore_transforms),
+            self._coords_mod(neg_ecore_transforms))
+        self._enemy_robots_handler.set_transforms(
+            self._coords_mod(enemy_trans_dict))
+        self._friendly_robots_handler.set_transforms(
+            self._coords_mod(friendly_trans_dict))
 
         # Run one step of the simulation
         self._make_step()
 
         # Get the observations created in the simulation step
-        low_obs_r1, up_obs_r1 = self._robot_handler.get_observations()
+        robot_observations_dict = \
+            self._friendly_robots_handler.get_observations()
 
-        low_obs_r2 = None
-        up_obs_r2 = None
-        return low_obs_r1, up_obs_r1, low_obs_r2, up_obs_r2
+        return robot_observations_dict
 
     def Step(self, settings):
+        """
+        Called by super class
+        """
         super(ObservationMaker, self).Step(settings)
         if self._message is not None:
             self.DrawStringAt(540, 540, self._message)
 
-        self._ball_handler.update()
-        self._robot_handler.update()
+        self._ecores_handler.update()
+        self._enemy_robots_handler.update()
+        self._friendly_robots_handler.update()
 
         self._print_observations_to_screen()
 
@@ -192,20 +219,21 @@ class ObservationMaker(Framework):
         next(self._stepper)
 
     def _print_observations_to_screen(self):
-        low_obs_r1, _ = self._robot_handler.get_observations()
-        angles = [element * 180 / b2_pi
-                  for element in self._robot_handler.angles]
-        results_str = print_observations(
-            low_obs_r1,
-            angles,
-            return_string=True,
-            include_raw=False)
-        results_str_arr = results_str.split("\n")
-        y_start = 230
-        for line in results_str_arr:
-            # self.Print(line)
-            self.DrawStringAt(50, y_start, line)
-            y_start += 18
+        pass
+        # low_obs_r1, _ = self._robots_handler.get_observations()
+        # angles = [element * 180 / b2_pi
+        #           for element in self._robots_handler.angles]
+        # results_str = print_observations(
+        #     low_obs_r1,
+        #     angles,
+        #     return_string=True,
+        #     include_raw=False)
+        # results_str_arr = results_str.split("\n")
+        # y_start = 230
+        # for line in results_str_arr:
+        #     # self.Print(line)
+        #     self.DrawStringAt(50, y_start, line)
+        #     y_start += 18
 
     def SetBackground(self, image):
         """

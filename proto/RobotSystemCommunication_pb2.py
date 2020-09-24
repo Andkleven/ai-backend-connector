@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n$proto/RobotSystemCommunication.proto\x12\x18robotsystemcommunication\"^\n\x12RobotActionRequest\x12\x17\n\x0fleftMotorAction\x18\x01 \x01(\x05\x12\x18\n\x10rightMotorAction\x18\x02 \x01(\x05\x12\x15\n\ractionTimeout\x18\x03 \x01(\x05\"K\n\x13RobotActionResponse\x12\x34\n\x06status\x18\x01 \x01(\x0e\x32$.robotsystemcommunication.StatusType\"\x12\n\x10RobotPingRequest\":\n\x11RobotPingResponse\x12\x11\n\tipAddress\x18\x01 \x01(\t\x12\x12\n\nmacAddress\x18\x02 \x01(\t\"\x9d\x01\n\x0cRobotRequest\x12\r\n\x05reqId\x18\x01 \x01(\r\x12;\n\x03\x61\x63t\x18\n \x01(\x0b\x32,.robotsystemcommunication.RobotActionRequestH\x00\x12:\n\x04ping\x18\x0b \x01(\x0b\x32*.robotsystemcommunication.RobotPingRequestH\x00\x42\x05\n\x03req\"\xa1\x01\n\rRobotResponse\x12\r\n\x05reqId\x18\x01 \x01(\r\x12<\n\x03\x61\x63t\x18\n \x01(\x0b\x32-.robotsystemcommunication.RobotActionResponseH\x00\x12;\n\x04ping\x18\x0b \x01(\x0b\x32+.robotsystemcommunication.RobotPingResponseH\x00\x42\x06\n\x04resp\"%\n\x13\x42rainActionResponse\x12\x0e\n\x06\x61\x63tion\x18\x01 \x01(\x05\"J\n\x12\x42rainActionRequest\x12\x19\n\x11lowerObservations\x18\x01 \x03(\x02\x12\x19\n\x11upperObservations\x18\x02 \x03(\x02\"0\n\x1fSimulationScreenCaptureResponse\x12\r\n\x05image\x18\x01 \x01(\x0c\"\x8b\x01\n\x1eSimulationScreenCaptureRequest\x12\x0e\n\x06height\x18\x01 \x01(\x05\x12\r\n\x05widht\x18\x02 \x01(\x05\x12\x36\n\timageType\x18\x03 \x01(\x0e\x32#.robotsystemcommunication.ImageType\x12\x12\n\njpgQuality\x18\x04 \x01(\x05\")\n\x17SimulationActionRequest\x12\x0e\n\x06\x61\x63tion\x18\x01 \x01(\x05\"P\n\x18SimulationActionResponse\x12\x34\n\x06status\x18\x01 \x01(\x0e\x32$.robotsystemcommunication.StatusType*,\n\nStatusType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x06\n\x02OK\x10\x01\x12\t\n\x05\x45RROR\x10\x02*\x1d\n\tImageType\x12\x07\n\x03JPG\x10\x00\x12\x07\n\x03PNG\x10\x01\x32|\n\rRobotFrontend\x12k\n\nMakeAction\x12,.robotsystemcommunication.RobotActionRequest\x1a-.robotsystemcommunication.RobotActionResponse\"\x00\x32y\n\x0b\x42rainServer\x12j\n\tGetAction\x12,.robotsystemcommunication.BrainActionRequest\x1a-.robotsystemcommunication.BrainActionResponse\"\x00\x32\x95\x02\n\x10SimulationServer\x12\x89\x01\n\x10GetScreenCapture\x12\x38.robotsystemcommunication.SimulationScreenCaptureRequest\x1a\x39.robotsystemcommunication.SimulationScreenCaptureResponse\"\x00\x12u\n\nMakeAction\x12\x31.robotsystemcommunication.SimulationActionRequest\x1a\x32.robotsystemcommunication.SimulationActionResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n$proto/RobotSystemCommunication.proto\x12\x18robotsystemcommunication\"^\n\x12RobotActionRequest\x12\x17\n\x0fleftMotorAction\x18\x01 \x01(\x05\x12\x18\n\x10rightMotorAction\x18\x02 \x01(\x05\x12\x15\n\ractionTimeout\x18\x03 \x01(\x05\"K\n\x13RobotActionResponse\x12\x34\n\x06status\x18\x01 \x01(\x0e\x32$.robotsystemcommunication.StatusType\"\x12\n\x10RobotPingRequest\":\n\x11RobotPingResponse\x12\x11\n\tipAddress\x18\x01 \x01(\t\x12\x12\n\nmacAddress\x18\x02 \x01(\t\"\x9d\x01\n\x0cRobotRequest\x12\r\n\x05reqId\x18\x01 \x01(\r\x12;\n\x03\x61\x63t\x18\n \x01(\x0b\x32,.robotsystemcommunication.RobotActionRequestH\x00\x12:\n\x04ping\x18\x0b \x01(\x0b\x32*.robotsystemcommunication.RobotPingRequestH\x00\x42\x05\n\x03req\"\xa1\x01\n\rRobotResponse\x12\r\n\x05reqId\x18\x01 \x01(\r\x12<\n\x03\x61\x63t\x18\n \x01(\x0b\x32-.robotsystemcommunication.RobotActionResponseH\x00\x12;\n\x04ping\x18\x0b \x01(\x0b\x32+.robotsystemcommunication.RobotPingResponseH\x00\x42\x06\n\x04resp\"M\n\x13\x42rainActionResponse\x12\x36\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32%.robotsystemcommunication.RobotAction\"4\n\x0bRobotAction\x12\x0e\n\x06\x61\x63tion\x18\x01 \x01(\x05\x12\x15\n\rarucoMarkerID\x18\x02 \x01(\x05\"R\n\x12\x42rainActionRequest\x12<\n\x0cobservations\x18\x01 \x03(\x0b\x32&.robotsystemcommunication.Observations\"[\n\x0cObservations\x12\x19\n\x11lowerObservations\x18\x01 \x03(\x02\x12\x19\n\x11upperObservations\x18\x02 \x03(\x02\x12\x15\n\rarucoMarkerID\x18\x03 \x01(\x05\"0\n\x1fSimulationScreenCaptureResponse\x12\r\n\x05image\x18\x01 \x01(\x0c\"\x8b\x01\n\x1eSimulationScreenCaptureRequest\x12\x0e\n\x06height\x18\x01 \x01(\x05\x12\r\n\x05widht\x18\x02 \x01(\x05\x12\x36\n\timageType\x18\x03 \x01(\x0e\x32#.robotsystemcommunication.ImageType\x12\x12\n\njpgQuality\x18\x04 \x01(\x05\"Q\n\x17SimulationActionRequest\x12\x36\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32%.robotsystemcommunication.RobotAction\"P\n\x18SimulationActionResponse\x12\x34\n\x06status\x18\x01 \x01(\x0e\x32$.robotsystemcommunication.StatusType*,\n\nStatusType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x06\n\x02OK\x10\x01\x12\t\n\x05\x45RROR\x10\x02*\x1d\n\tImageType\x12\x07\n\x03JPG\x10\x00\x12\x07\n\x03PNG\x10\x01\x32|\n\rRobotFrontend\x12k\n\nMakeAction\x12,.robotsystemcommunication.RobotActionRequest\x1a-.robotsystemcommunication.RobotActionResponse\"\x00\x32y\n\x0b\x42rainServer\x12j\n\tGetAction\x12,.robotsystemcommunication.BrainActionRequest\x1a-.robotsystemcommunication.BrainActionResponse\"\x00\x32\x95\x02\n\x10SimulationServer\x12\x89\x01\n\x10GetScreenCapture\x12\x38.robotsystemcommunication.SimulationScreenCaptureRequest\x1a\x39.robotsystemcommunication.SimulationScreenCaptureResponse\"\x00\x12u\n\nMakeAction\x12\x31.robotsystemcommunication.SimulationActionRequest\x1a\x32.robotsystemcommunication.SimulationActionResponse\"\x00\x62\x06proto3'
 )
 
 _STATUSTYPE = _descriptor.EnumDescriptor(
@@ -48,8 +48,8 @@ _STATUSTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1075,
-  serialized_end=1119,
+  serialized_start=1310,
+  serialized_end=1354,
 )
 _sym_db.RegisterEnumDescriptor(_STATUSTYPE)
 
@@ -74,8 +74,8 @@ _IMAGETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1121,
-  serialized_end=1150,
+  serialized_start=1356,
+  serialized_end=1385,
 )
 _sym_db.RegisterEnumDescriptor(_IMAGETYPE)
 
@@ -341,9 +341,9 @@ _BRAINACTIONRESPONSE = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='action', full_name='robotsystemcommunication.BrainActionResponse.action', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      name='actions', full_name='robotsystemcommunication.BrainActionResponse.actions', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -360,7 +360,46 @@ _BRAINACTIONRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=643,
-  serialized_end=680,
+  serialized_end=720,
+)
+
+
+_ROBOTACTION = _descriptor.Descriptor(
+  name='RobotAction',
+  full_name='robotsystemcommunication.RobotAction',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='action', full_name='robotsystemcommunication.RobotAction.action', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='arucoMarkerID', full_name='robotsystemcommunication.RobotAction.arucoMarkerID', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=722,
+  serialized_end=774,
 )
 
 
@@ -373,15 +412,8 @@ _BRAINACTIONREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='lowerObservations', full_name='robotsystemcommunication.BrainActionRequest.lowerObservations', index=0,
-      number=1, type=2, cpp_type=6, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='upperObservations', full_name='robotsystemcommunication.BrainActionRequest.upperObservations', index=1,
-      number=2, type=2, cpp_type=6, label=3,
+      name='observations', full_name='robotsystemcommunication.BrainActionRequest.observations', index=0,
+      number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -398,8 +430,54 @@ _BRAINACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=682,
-  serialized_end=756,
+  serialized_start=776,
+  serialized_end=858,
+)
+
+
+_OBSERVATIONS = _descriptor.Descriptor(
+  name='Observations',
+  full_name='robotsystemcommunication.Observations',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='lowerObservations', full_name='robotsystemcommunication.Observations.lowerObservations', index=0,
+      number=1, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='upperObservations', full_name='robotsystemcommunication.Observations.upperObservations', index=1,
+      number=2, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='arucoMarkerID', full_name='robotsystemcommunication.Observations.arucoMarkerID', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=860,
+  serialized_end=951,
 )
 
 
@@ -430,8 +508,8 @@ _SIMULATIONSCREENCAPTURERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=758,
-  serialized_end=806,
+  serialized_start=953,
+  serialized_end=1001,
 )
 
 
@@ -483,8 +561,8 @@ _SIMULATIONSCREENCAPTUREREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=809,
-  serialized_end=948,
+  serialized_start=1004,
+  serialized_end=1143,
 )
 
 
@@ -497,9 +575,9 @@ _SIMULATIONACTIONREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='action', full_name='robotsystemcommunication.SimulationActionRequest.action', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      name='actions', full_name='robotsystemcommunication.SimulationActionRequest.actions', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -515,8 +593,8 @@ _SIMULATIONACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=950,
-  serialized_end=991,
+  serialized_start=1145,
+  serialized_end=1226,
 )
 
 
@@ -547,8 +625,8 @@ _SIMULATIONACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=993,
-  serialized_end=1073,
+  serialized_start=1228,
+  serialized_end=1308,
 )
 
 _ROBOTACTIONRESPONSE.fields_by_name['status'].enum_type = _STATUSTYPE
@@ -568,7 +646,10 @@ _ROBOTRESPONSE.fields_by_name['act'].containing_oneof = _ROBOTRESPONSE.oneofs_by
 _ROBOTRESPONSE.oneofs_by_name['resp'].fields.append(
   _ROBOTRESPONSE.fields_by_name['ping'])
 _ROBOTRESPONSE.fields_by_name['ping'].containing_oneof = _ROBOTRESPONSE.oneofs_by_name['resp']
+_BRAINACTIONRESPONSE.fields_by_name['actions'].message_type = _ROBOTACTION
+_BRAINACTIONREQUEST.fields_by_name['observations'].message_type = _OBSERVATIONS
 _SIMULATIONSCREENCAPTUREREQUEST.fields_by_name['imageType'].enum_type = _IMAGETYPE
+_SIMULATIONACTIONREQUEST.fields_by_name['actions'].message_type = _ROBOTACTION
 _SIMULATIONACTIONRESPONSE.fields_by_name['status'].enum_type = _STATUSTYPE
 DESCRIPTOR.message_types_by_name['RobotActionRequest'] = _ROBOTACTIONREQUEST
 DESCRIPTOR.message_types_by_name['RobotActionResponse'] = _ROBOTACTIONRESPONSE
@@ -577,7 +658,9 @@ DESCRIPTOR.message_types_by_name['RobotPingResponse'] = _ROBOTPINGRESPONSE
 DESCRIPTOR.message_types_by_name['RobotRequest'] = _ROBOTREQUEST
 DESCRIPTOR.message_types_by_name['RobotResponse'] = _ROBOTRESPONSE
 DESCRIPTOR.message_types_by_name['BrainActionResponse'] = _BRAINACTIONRESPONSE
+DESCRIPTOR.message_types_by_name['RobotAction'] = _ROBOTACTION
 DESCRIPTOR.message_types_by_name['BrainActionRequest'] = _BRAINACTIONREQUEST
+DESCRIPTOR.message_types_by_name['Observations'] = _OBSERVATIONS
 DESCRIPTOR.message_types_by_name['SimulationScreenCaptureResponse'] = _SIMULATIONSCREENCAPTURERESPONSE
 DESCRIPTOR.message_types_by_name['SimulationScreenCaptureRequest'] = _SIMULATIONSCREENCAPTUREREQUEST
 DESCRIPTOR.message_types_by_name['SimulationActionRequest'] = _SIMULATIONACTIONREQUEST
@@ -635,12 +718,26 @@ BrainActionResponse = _reflection.GeneratedProtocolMessageType('BrainActionRespo
   })
 _sym_db.RegisterMessage(BrainActionResponse)
 
+RobotAction = _reflection.GeneratedProtocolMessageType('RobotAction', (_message.Message,), {
+  'DESCRIPTOR' : _ROBOTACTION,
+  '__module__' : 'proto.RobotSystemCommunication_pb2'
+  # @@protoc_insertion_point(class_scope:robotsystemcommunication.RobotAction)
+  })
+_sym_db.RegisterMessage(RobotAction)
+
 BrainActionRequest = _reflection.GeneratedProtocolMessageType('BrainActionRequest', (_message.Message,), {
   'DESCRIPTOR' : _BRAINACTIONREQUEST,
   '__module__' : 'proto.RobotSystemCommunication_pb2'
   # @@protoc_insertion_point(class_scope:robotsystemcommunication.BrainActionRequest)
   })
 _sym_db.RegisterMessage(BrainActionRequest)
+
+Observations = _reflection.GeneratedProtocolMessageType('Observations', (_message.Message,), {
+  'DESCRIPTOR' : _OBSERVATIONS,
+  '__module__' : 'proto.RobotSystemCommunication_pb2'
+  # @@protoc_insertion_point(class_scope:robotsystemcommunication.Observations)
+  })
+_sym_db.RegisterMessage(Observations)
 
 SimulationScreenCaptureResponse = _reflection.GeneratedProtocolMessageType('SimulationScreenCaptureResponse', (_message.Message,), {
   'DESCRIPTOR' : _SIMULATIONSCREENCAPTURERESPONSE,
@@ -679,8 +776,8 @@ _ROBOTFRONTEND = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1152,
-  serialized_end=1276,
+  serialized_start=1387,
+  serialized_end=1511,
   methods=[
   _descriptor.MethodDescriptor(
     name='MakeAction',
@@ -705,8 +802,8 @@ _BRAINSERVER = _descriptor.ServiceDescriptor(
   index=1,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1278,
-  serialized_end=1399,
+  serialized_start=1513,
+  serialized_end=1634,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetAction',
@@ -731,8 +828,8 @@ _SIMULATIONSERVER = _descriptor.ServiceDescriptor(
   index=2,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1402,
-  serialized_end=1679,
+  serialized_start=1637,
+  serialized_end=1914,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetScreenCapture',

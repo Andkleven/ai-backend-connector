@@ -3,73 +3,64 @@ from Box2D import (
     b2RayCastCallback,
     b2Vec2,
     b2_pi,
-    b2PolygonShape,
     b2Color)
 from math import sin, cos
-
 from utils.utils import get_ray_angles
 from itertools import cycle
+from observation_maker.robots_handler import RobotsHandler
 
 
-LOWER_TAGS = ["good_ball", "good_goal", "wall"]
-UPPER_TAGS = ["empty", "good_goal", "wall"]
+LOWER_TAGS = ["friendly_goal",
+              "enemy_goal",
+              "friendly_robot",
+              "enemy_robot",
+              "positive_energy_core",
+              "negative_energy_core",
+              "wall"]
+UPPER_TAGS = ["friendly_goal",
+              "enemy_goal",
+              "friendly_robot",
+              "enemy_robot",
+              "skip_this_for_upper",
+              "skip_this_for_upper",
+              "wall"]
 HIT_DISTANCE_OFFSET = 0.00
 
 
-class RobotHandler(object):
+class FriendlyRobotsHandler(RobotsHandler):
     def __init__(self, world, renderer, params):
-        self._world = world
-        self._renderer = renderer
-        vertices = [
-            (40, 50),
-            (40, -50),
-            (-40, -50),
-            (-40, 50)]
-        # Create balls if needed and update their position
-        self._robot1 = self._world.CreateStaticBody(
-            position=(0, 0),
-            shapes=b2PolygonShape(vertices=vertices))
-        self._robot1.userData = {'type': 'robot1'}
-        for fixture in self._robot1.fixtures:
-            fixture.sensor = True
-
+        super().__init__(world, renderer)
         self._raycaster = Raycaster(
             self._world,
             self._renderer,
             params)
+        self._robot_type = "friendly_robot"
+        self._robots_observations = {}
 
     @property
     def angles(self):
         return self._raycaster.angles
 
     def get_observations(self):
-        return self._lower_observations, self._upper_observations
-
-    def set_transforms(self, robot1_transform, robot2_transform):
-        if robot1_transform is None or len(robot1_transform) == 0:
-            self._robot1.active = False
-            self._robot1.position = b2Vec2(5000, 5000)
-        else:
-            self._robot1.active = True
-            self._robot1.position = b2Vec2(
-                robot1_transform['position'][0],
-                robot1_transform['position'][1])
-            self._robot1.angle = \
-                -robot1_transform['rotation'][0] * b2_pi / 180
+        return self._robots_observations
 
     def update(self):
-        if self._robot1.active is False:
-            self._lower_observations = None
-            self._upper_observations = None
-        else:
-            self._lower_observations = self._raycaster.cast(
-                self._robot1.angle,
-                self._robot1.position,
-                LOWER_TAGS)
-            self._upper_observations = self._raycaster.cast(
-                self._robot1.angle,
-                self._robot1.position,
-                UPPER_TAGS)
+        self._robots_observations.clear()
+        for aruco_id in self._robots.keys():
+            robot = self._robots[aruco_id]
+            if robot.active is True:
+                lower_observations = self._raycaster.cast(
+                    robot.angle,
+                    robot.position,
+                    LOWER_TAGS)
+                upper_observations = self._raycaster.cast(
+                    robot.angle,
+                    robot.position,
+                    UPPER_TAGS)
+
+                self._robots_observations[aruco_id] = {
+                    'lower_obs': lower_observations,
+                    'upper_obs': upper_observations}
 
 
 class RayCastClosestCallback(b2RayCastCallback):
@@ -227,15 +218,10 @@ class Raycaster():
             if callback.hit:
                 self.draw_hit(
                     point1, callback.point, callback.normal, line_color)
-
-                temp_dist = callback.fraction + 0.009
-                if callback.fixture.body.userData['type'] is "wall":
-                    temp_dist = temp_dist
-
                 hits.append(
                     {
                         "type": callback.fixture.body.userData['type'],
-                        "distance": temp_dist
+                        "distance": callback.fraction
                     })
             else:
                 self.renderer.DrawSegment(point1, point2, line_color)

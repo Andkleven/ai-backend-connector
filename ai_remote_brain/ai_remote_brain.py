@@ -23,13 +23,17 @@ class UnityBrainServer(rsc_pb2_grpc.BrainServerServicer):
     def available(self):
         return self._available.value == 1
 
-    def get_action(self, lower_observations, upper_observations):
+    def get_actions(self, robot_obs_dict):
         try:
-            brain_req = rsc_pb2.BrainActionRequest(
-                lowerObservations=lower_observations,
-                upperObservations=upper_observations)
+            brain_req = rsc_pb2.BrainActionRequest()
+            for aruco_id in robot_obs_dict.keys():
+                obs = rsc_pb2.Observations(
+                    lowerObservations=robot_obs_dict[aruco_id]['lower_obs'],
+                    upperObservations=robot_obs_dict[aruco_id]['upper_obs'],
+                    arucoMarkerID=aruco_id)
+                brain_req.observations.append(obs)
             brain_res = self._stub.GetAction(brain_req)
-            return brain_res.action
+            return self._robot_actions_to_dict(brain_res.actions)
 
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
@@ -39,6 +43,12 @@ class UnityBrainServer(rsc_pb2_grpc.BrainServerServicer):
         except Exception as e:
             raise e
 
+    def _robot_actions_to_dict(self, robot_actions):
+        robot_actions_dict = {}
+        for action in robot_actions:
+            robot_actions_dict[action.arucoMarkerID] = action.action
+        return robot_actions_dict
+
 
 # For testing
 # Run this with "python -m ai_remote_brain.ai_remote_brain"
@@ -47,18 +57,24 @@ def main(_):
     '''
     Connect to IP cam and print results
     '''
-    brain_server = UnityBrainServer(
-        host_ip="localhost",
-        port="50052")
+    params_file = FLAGS.params_file
+    params = parse_options(params_file)
 
+    brain_server = UnityBrainServer(params)
+
+    robot_observations_dict = {
+        2: {
+            'lower_obs': [0] * 279,
+            'upper_obs': [0] * 279},
+        3: {
+            'lower_obs': [0] * 279,
+            'upper_obs': [0] * 279}}
     try:
         while True:
-            lower_obs = [0] * 35
-            upper_obs = [0] * 35
-            response = brain_server.get_action(lower_obs, upper_obs)
+            response = brain_server.get_actions(robot_observations_dict)
             print(f'Got action:{response}')
 
-            time.sleep(0.1)
+            time.sleep(0.5)
     except KeyboardInterrupt:
         print("Exiting")
 
@@ -66,7 +82,7 @@ def main(_):
 if __name__ == "__main__":
     from absl import app
     from absl import flags
-    # from utils import parse_options
+    from utils.utils import parse_options
 
     flags.DEFINE_string(
         "params_file",

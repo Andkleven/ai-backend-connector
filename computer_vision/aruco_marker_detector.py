@@ -12,8 +12,10 @@ ANGLE_CORRECTION_DEGREE = 1
 class ArucoMarkerDetector():
     def __init__(self, params):
         self._aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-        self._robot1_aruco_code = params["ai_robot"]["robot1_aruco_code"]
-        self._robot2_aruco_code = params["ai_robot"]["robot2_aruco_code"]
+        self._friendly_robot_arucos = []
+        for item in params["ai_robots"]["robots"]:
+            self._friendly_robot_arucos.append(item['aruco_code'])
+
         self._aruco_detector_parameters = aruco.DetectorParameters_create()
         # More Aruco detection tuning parameters shown at below link.
         # http://amroamroamro.github.io/mexopencv/opencv_contrib/aruco_detect_markers_demo.html
@@ -30,7 +32,7 @@ class ArucoMarkerDetector():
 
         with open(file_path) as json_file:
             camera_calib_params = json.load(json_file)
-        self._size_of_marker = params["ai_robot"]["aruco_marker_size"]
+        self._size_of_marker = params["ai_robots"]["aruco_marker_size"]
 
         self._mtx = np.array(camera_calib_params["mtx"], dtype=np.float32)
         self._dist = np.array(camera_calib_params["dist"], dtype=np.float32)
@@ -47,27 +49,17 @@ class ArucoMarkerDetector():
         if image is None:
             raise("No image for get_robot_transforms-method")
 
-        robot_transforms = self._get_aruco_marker_transforms(image=image)
+        robot_trans_dict = self._get_aruco_marker_transforms(image=image)
 
-        robot1_transform = None
-        robot2_transform = None
-        enemy_transforms = None
-
-        for transform in robot_transforms:
-            if transform['aruco_id'] == self._robot1_aruco_code:
-                if robot1_transform is None:
-                    robot1_transform = {}
-                robot1_transform = transform
-            elif transform['aruco_id'] == self._robot2_aruco_code:
-                if robot2_transform is None:
-                    robot2_transform = {}
-                robot2_transform = transform
+        friendly_trans_dict = {}
+        enemy_trans_dict = {}
+        for aruco_key in robot_trans_dict.keys():
+            if aruco_key in self._friendly_robot_arucos:
+                friendly_trans_dict[aruco_key] = robot_trans_dict[aruco_key]
             else:
-                if enemy_transforms is None:
-                    enemy_transforms = []
-                enemy_transforms.append(transform)
+                enemy_trans_dict[aruco_key] = robot_trans_dict[aruco_key]
 
-        return robot1_transform, robot2_transform, enemy_transforms
+        return friendly_trans_dict, enemy_trans_dict
 
     def _get_aruco_marker_transforms(self, image):
         '''
@@ -115,36 +107,34 @@ class ArucoMarkerDetector():
                         from aruco.detectMarkers
             rvecs (?): ?
 
-        Returns : list(dictionary)
-            aruco_id : int
-            position : numpy array[x, y]
-                x and y positions are in pixel coordinates from
-                zero to image height/width in pixels.
-            rotation : numpy array[rot_x, rot_y, rot_z] or
-                        numpy array[rot_z]
-                Rotations are from -180 to 180 degrees
+        Returns : dictionary
+            key : aruco_id : int
+            value:
+                position : numpy array[x, y]
+                    x and y positions are in pixel coordinates from
+                    zero to image height/width in pixels.
+                rotation : numpy array[rot_x, rot_y, rot_z] or
+                            numpy array[rot_z]
+                    Rotations are from -180 to 180 degrees
         """
-        transforms = []
+        robot_trans_dict = {}
 
         if detected_ids is None or corners is None or rvecs is None:
             return transforms
 
         for id, corner_list, rvec in zip(detected_ids, corners, rvecs):
-            robot_trans_dict = {}
-            robot_trans_dict['aruco_id'] = id
+            robot_trans_dict[id.item()] = {}
             center = np.mean(corner_list[0], axis=0, dtype=np.float32)
-            robot_trans_dict['position'] = center
             dst, jacobian = cv2.Rodrigues(rvec[0])
             euler_angles = self._rotation_matrix_to_euler_angles(dst)
-
+            robot_trans_dict[id.item()]['position'] = center
             if only_z_rot:
-                robot_trans_dict['rotation'] = \
+                robot_trans_dict[id.item()]['rotation'] = \
                     np.array([euler_angles[2] + ANGLE_CORRECTION_DEGREE])
             else:
-                robot_trans_dict['rotation'] = euler_angles
-            transforms.append(robot_trans_dict)
+                robot_trans_dict[id.item()]['rotation'] = euler_angles
 
-        return transforms
+        return robot_trans_dict
 
     def _is_rotation_matrix(self, matrix):
         """

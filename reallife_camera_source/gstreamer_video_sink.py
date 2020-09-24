@@ -80,7 +80,7 @@ class GStreamerVideoSink():
                 break
 
         if self.video_sink is None:
-            throw("video_sink is NONE")
+            raise Exception("video_sink is NONE")
 
     @staticmethod
     def _gst_to_opencv(sample):
