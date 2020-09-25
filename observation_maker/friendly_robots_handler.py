@@ -41,6 +41,14 @@ class FriendlyRobotsHandler(RobotsHandler):
     def angles(self):
         return self._raycaster.angles
 
+    @property
+    def lower_tags(self):
+        return LOWER_TAGS
+
+    @property
+    def upper_tags(self):
+        return LOWER_TAGS
+
     def get_observations(self):
         return self._robots_observations
 

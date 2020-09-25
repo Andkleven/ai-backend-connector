@@ -1,3 +1,4 @@
+from Box2D import b2Color
 from observation_maker.robots_handler import RobotsHandler
 
 

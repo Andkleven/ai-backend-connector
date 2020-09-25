@@ -10,7 +10,7 @@ from utils.utils import parse_options
 from utils.constants import SIMU, TEST, PROD
 from ai_simulator.ai_simulator import UnitySimulation
 from ai_remote_brain.ai_remote_brain import UnityBrainServer
-from ai_robot.ai_robot import RobotFrontend
+from ai_robot.ai_robots_handler import AIRobotsHandler
 from reallife_camera_source.gstreamer_video_sink import GStreamerVideoSink
 from computer_vision.image_processer import ImageProcesser
 
@@ -38,8 +38,8 @@ class Game:
                 params = parse_options("params-simu.yaml")
 
             self._robot_arucos = []
-            for item in params["ai_robots"]["robots"]:
-                self._robot_arucos.append(item['aruco_code'])
+            for robot in params["ai_robots"]["robots"]:
+                self._robot_arucos.append(robot['aruco_code'])
 
             if 'simulation' in params:
                 width = params['simulation']['capture_width']
@@ -144,7 +144,7 @@ class Game:
         if mode == PROD or mode == TEST:
             image_source = GStreamerVideoSink(params)
             if mode == PROD:
-                frontend = RobotFrontend(params)
+                frontend = AIRobotsHandler(params)
             else:
                 frontend = None
         elif mode == SIMU:

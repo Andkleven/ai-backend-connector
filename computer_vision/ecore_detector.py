@@ -105,11 +105,6 @@ class EnergyCoreDetector():
             center_y = int(moments["m01"] / moments["m00"])
             center_points.append([center_x, center_y])
 
-        if len(center_points) == 0:
-            # center_points = np.array(center_points, dtype=np.float32)
-            # center_points = np.reshape(center_points, (-1, 1, 2))
-            center_points = None
-
         return center_points
 
     def _blur_and_hsv(self, image):

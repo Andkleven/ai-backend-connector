@@ -1,16 +1,24 @@
 decision_rate: 5
 
-ai_robot:
-    ip: "192.168.10.33"
-    port: 50052
-    connection_type: "udp"  # Either "UDP" or "GRPC" (case insensitive)
-    robot1_aruco_code: 2
-    robot2_aruco_code: 3
-    action_timeout: 200  # in milli seconds
+ai_robots:
     aruco_marker_size: 0.11
-    robot_speed: 35
-    turn_speed: 35
-    move_turn_speed: 50
+    robots:
+        - ip: "192.168.10.33"
+          port: 50052
+          connection_type: "udp"  # Either "UDP" or "GRPC" (case insensitive)
+          aruco_code: 2
+          action_timeout: 200  # in milli seconds
+          robot_speed: 35
+          turn_speed: 35
+          move_turn_speed: 50
+        - ip: "192.168.10.49"
+          port: 50052
+          connection_type: "udp"  # Either "UDP" or "GRPC" (case insensitive)
+          aruco_code: 3
+          action_timeout: 200  # in milli seconds
+          robot_speed: 50
+          turn_speed: 50
+          move_turn_speed: 50
 
 ai_video_streamer:
     multicast_ip: 224.1.1.1
@@ -27,8 +35,10 @@ image_processing:
     # Value ranges for HSV-values in OpenCV
     # H: 0-179, S: 0-255, V: 0-255
     # See more about HSV colors at https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
-    ball_low_color: [145, 60, 80]
-    ball_high_color: [175, 205, 245]
+    pos_energy_core_low_color: [120, 80, 100]
+    pos_energy_core_high_color: [175, 255, 255]
+    neg_energy_core_low_color: [25, 80, 100]
+    neg_energy_core_high_color: [40, 255, 255]
     ball_radius: 33 # 18
     max_angle_per_side: 140
     number_of_rays_per_side: 15
@@ -39,7 +49,8 @@ image_processing:
     show_mask: false
 
 arena:
-    good_goal: [[532, 20], [1212, 720], [1212, 20]] # Right upper corner
+    enemy_goal: [[1232, 682], [682, 1232], [1232, 1232]] # Lower right corner, Level_1.7m_XL-goal
+    friendly_goal: [[0, 530], [530, 0], [0, 0]] # Upper left corner, Level_1.7m_XL-goal
     walls: [  # 1.7m x 1.7m level in real world
         [
             [16, 16],

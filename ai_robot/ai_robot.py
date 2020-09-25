@@ -12,17 +12,17 @@ GRPC_CONNECTION = "grpc"
 
 class RobotFrontend:
     def __init__(self, params):
-        self._robot_ip = params["ai_robot"]["ip"]
-        self._robot_port = params["ai_robot"]["port"]
-        self._robot_conn_type = params["ai_robot"]["connection_type"]
+        self._robot_ip = params["ip"]
+        self._robot_port = params["port"]
+        self._robot_conn_type = params["connection_type"]
         self._channel = grpc.insecure_channel(
             '{}:{}'.format(self._robot_ip, self._robot_port))
         self._stub = rsc_pb2_grpc.RobotFrontendStub(self._channel)
 
-        self._robot_speed = params["ai_robot"]["robot_speed"]
-        self._turn_speed = params["ai_robot"]["turn_speed"]
-        self._move_turn_speed = params["ai_robot"]["move_turn_speed"]
-        self._action_timeout = int(params["ai_robot"]["action_timeout"])
+        self._robot_speed = params["robot_speed"]
+        self._turn_speed = params["turn_speed"]
+        self._move_turn_speed = params["move_turn_speed"]
+        self._action_timeout = int(params["action_timeout"])
         self._available = Value('i', 1)
 
     @property

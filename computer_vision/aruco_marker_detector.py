@@ -120,7 +120,7 @@ class ArucoMarkerDetector():
         robot_trans_dict = {}
 
         if detected_ids is None or corners is None or rvecs is None:
-            return transforms
+            return robot_trans_dict
 
         for id, corner_list, rvec in zip(detected_ids, corners, rvecs):
             robot_trans_dict[id.item()] = {}

@@ -1,10 +1,11 @@
 from Box2D import (
     b2Vec2,
     b2_pi,
+    b2Color,
     b2PolygonShape)
 
 
-ROBOT_VERTICES = [(40, 50), (40, -50), (-40, -50), (-40, 50)]
+ROBOT_VERTICES = [(35, 45), (35, -45), (-35, -45), (-35, 45)]
 
 
 class RobotsHandler(object):
@@ -43,6 +44,12 @@ class RobotsHandler(object):
         robot.active = True
         robot.position = b2Vec2(position[0], position[1])
         robot.angle = -rotation[0] * b2_pi / 180
+
+    def get_vertices_for_all(self):
+        pass
+
+    def get_color(self):
+        return self._color
 
     def update(self):
         pass

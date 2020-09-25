@@ -163,9 +163,9 @@ class ObservationMaker(Framework):
     def update_image(self, image, message):
         self.SetBackground(image)
         self._message = message
-        self._ecores_handler .set_transforms([], [])
-        self._friendly_robots_handler.set_transforms({}, {})
-        self._enemy_robots_handler.set_transforms({}, {})
+        self._ecores_handler.set_transforms([], [])
+        self._friendly_robots_handler.set_transforms({})
+        self._enemy_robots_handler.set_transforms({})
         self._make_step()
 
     def get_observations(
@@ -203,37 +203,49 @@ class ObservationMaker(Framework):
         """
         Called by super class
         """
-        super(ObservationMaker, self).Step(settings)
-        if self._message is not None:
-            self.DrawStringAt(540, 540, self._message)
-
         self._ecores_handler.update()
         self._enemy_robots_handler.update()
         self._friendly_robots_handler.update()
+        super(ObservationMaker, self).Step(settings)
+        # self._overdraw_with_colors()
 
+        if self._message is not None:
+            self.DrawStringAt(540, 540, self._message)
+            self._message = None
         self._print_observations_to_screen()
-
         self._CaptureScreen()
 
     def _make_step(self):
         next(self._stepper)
 
+    # def _overdraw_with_colors(self):
+    #     self.world.renderer.DrawSolidPolygon([[0, 0], [500, 0], [0, 1080]], b2Color(1, 0, 1))
+
     def _print_observations_to_screen(self):
-        pass
-        # low_obs_r1, _ = self._robots_handler.get_observations()
-        # angles = [element * 180 / b2_pi
-        #           for element in self._robots_handler.angles]
-        # results_str = print_observations(
-        #     low_obs_r1,
-        #     angles,
-        #     return_string=True,
-        #     include_raw=False)
-        # results_str_arr = results_str.split("\n")
-        # y_start = 230
-        # for line in results_str_arr:
-        #     # self.Print(line)
-        #     self.DrawStringAt(50, y_start, line)
-        #     y_start += 18
+        robot_obs_dict = \
+            self._friendly_robots_handler.get_observations()
+        if not robot_obs_dict:
+            return
+        neg_ecores, pos_ecores = self._ecores_handler.get_ecore_counts()
+        results_str = f'Neg Ecores: {neg_ecores} | Pos Ecores: {pos_ecores}\n'
+        aruco_id = next(iter(robot_obs_dict))
+        results_str = \
+            results_str + f'Lower observations for robot: {aruco_id}\n'
+        results_str = results_str + \
+            f'{"|".join(self._friendly_robots_handler.lower_tags)}\n'
+
+        angles = [element * 180 / b2_pi
+                  for element in self._friendly_robots_handler.angles]
+        results_str = results_str + print_observations(
+            robot_obs_dict[aruco_id]['lower_obs'],
+            angles,
+            return_string=True,
+            include_raw=False)
+        results_str_arr = results_str.split("\n")
+        y_start = 230
+        for line in results_str_arr:
+            self.DrawStringAt(30, y_start, line, b2Color(0, 0, 0))
+            y_start += 18
 
     def SetBackground(self, image):
         """

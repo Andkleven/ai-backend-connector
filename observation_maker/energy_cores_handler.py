@@ -7,43 +7,45 @@ from Box2D import (
 class EnergyCoresHandler(object):
     def __init__(self, world, params):
         self._world = world
-        self._good_balls = []
-        self._bad_balls = []
-        self._good_ball_transforms = []
-        self._bad_ball_transforms = []
-        self._ball_radius = params["image_processing"]["ball_radius"]
+        self._pos_ecores = []
+        self._neg_ecores = []
+        self._ecore_radius = params["image_processing"]["ball_radius"]
 
-    def set_transforms(self, good_ball_transforms, bad_ball_transforms):
-        self._good_ball_transforms = good_ball_transforms
-        self._bad_ball_transforms = bad_ball_transforms
+    def set_transforms(self, pos_ecore_trans, neg_ecore_trans):
+        self._handle_group(pos_ecore_trans,
+                           self._pos_ecores,
+                           'positive_energy_core')
+        self._handle_group(neg_ecore_trans,
+                           self._neg_ecores,
+                           'negative_energy_core')
 
     def update(self):
-        if self._good_ball_transforms is None:
-            self._good_ball_transforms = []
-        if self._bad_ball_transforms is None:
-            self._bad_ball_transforms = []
+        pass
 
-        current_good_ball_count = len(self._good_balls)
-        new_good_ball_count = len(self._good_ball_transforms)
+    def get_ecore_counts(self):
+        return len(self._neg_ecores), len(self._pos_ecores)
 
-        if new_good_ball_count > current_good_ball_count:
-            new_balls_count = new_good_ball_count - current_good_ball_count
-            for i in range(new_balls_count):
-                new_ball = self._create_ball('good_ball')
-                self._good_balls.append(new_ball)
+    def _handle_group(self, new_ecore_trans, ecore_arr, tag_name):
+        current_ecore_count = len(ecore_arr)
+        new_ecore_count = len(new_ecore_trans)
 
+        if new_ecore_count > current_ecore_count:
+            new_ecores_to_create = new_ecore_count - current_ecore_count
+            for i in range(new_ecores_to_create):
+                new_ecore = self._create_ball(tag_name)
+                ecore_arr.append(new_ecore)
         # Activate and deactivate balls if needed
-        for ball, transform in zip(
-                self._good_balls[:new_good_ball_count],
-                self._good_ball_transforms):
-            self._activate_ball(ball, transform)
-        for ball in self._good_balls[new_good_ball_count:]:
-            self._deactivate_ball(ball)
+        for ecore, transform in zip(
+                ecore_arr[:new_ecore_count],
+                new_ecore_trans):
+            self._activate_ball(ecore, transform)
+        for ecore in ecore_arr[new_ecore_count:]:
+            self._deactivate_ball(ecore)
 
     def _create_ball(self, ball_type):
         # Create balls if needed and update their position
         ball = self._world.CreateStaticBody(
-            shapes=b2CircleShape(pos=(0, 0), radius=self._ball_radius))
+            shapes=b2CircleShape(pos=(0, 0), radius=self._ecore_radius))
         ball.userData = {'type': ball_type}
         for fixture in ball.fixtures:
             fixture.sensor = True

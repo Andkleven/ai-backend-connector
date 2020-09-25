@@ -34,10 +34,10 @@ class ImageProcesser():
         warning_text = ''
 
         # Mask goal area to stop robot from moving when ball is in goal
-        pts = np.array(self._params['arena']['enemy_goal'])
-        cv2.fillPoly(image, [pts], (0, 0, 255))
-        pts = np.array(self._params['arena']['friendly_goal'])
-        cv2.fillPoly(image, [pts], (255, 0, 0))
+        # pts = np.array(self._params['arena']['enemy_goal'])
+        # cv2.fillPoly(image, [pts], (0, 0, 255))
+        # pts = np.array(self._params['arena']['friendly_goal'])
+        # cv2.fillPoly(image, [pts], (255, 0, 0))
 
         # 1) Detect aruco markers for own and enemy robots
         friendly_trans_dict, enemy_trans_dict = \
@@ -56,7 +56,7 @@ class ImageProcesser():
             if not pos_ecore_transforms and not neg_ecore_transforms:
                 warning_text = warning_text + 'Could not locate balls'
             self._observation_maker.update_image(image, message=warning_text)
-            return None, None, None, None
+            return {}
 
         # 3.2) Get observations for friendly robots
         robot_observations_dict = self._observation_maker.get_observations(
