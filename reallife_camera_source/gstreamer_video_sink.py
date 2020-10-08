@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import traceback
 import cv2
 import gi
 import numpy as np
@@ -167,10 +168,19 @@ class GStreamerVideoSink():
     def _callback(self, sink):
         sample = sink.emit('pull-sample')
         new_frame = self._gst_to_opencv(sample)
-        # new_frame = self._crop_center(new_frame, 1080, 1080)
-        # new_frame = self._resize(new_frame, self._width, self._height)
         with self._mutex:
-            self._frame[:] = new_frame
+            try:
+                self._frame[:] = new_frame
+            except ValueError as error:
+                traceback.print_exc()
+                print('\n=====\n'
+                      'Got unexpected exception in "GStreamerVideoSink"'
+                      f'Message: {error}\n=====\n')
+                raise Exception(
+                    "\n=====\nCan't get image. Maybe the incoming image "
+                    f"size is different than {self._width}x{self._height} "
+                    "which was expected\n=====\n")
+
         return Gst.FlowReturn.OK
 
 

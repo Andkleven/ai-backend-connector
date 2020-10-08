@@ -87,14 +87,14 @@ def setup_variables(mode):
 def print_game_data(shared_data):
     console_text = \
         f'Status: {shared_data["status"]} \n' \
-        f'FPS 1: {shared_data["actualDurationFPS"]:04.1f} \n' \
-        f'FPS 2: {shared_data["totalDurationFPS"]:04.1f} \n' \
-        f'process time: {shared_data["actualDuration"]:05.3f} \n' \
-        f'done time: {shared_data["totalDuration"]:05.3f} \n' \
-        f'image cap dur: {shared_data["imageCaptureDuration"]:05.3f} \n' \
-        f'obs dur: {shared_data["obsCreationDuration"]:05.3f} \n' \
-        f'brain dur: {shared_data["brainDuration"]:05.3f} \n' \
-        f'frontend dur: {shared_data["frontendDuration"]:05.3f}'
+        f'Real FPS: \t\t{shared_data["actualDurationFPS"]:4.1f}FPS \n' \
+        f'Real process time: \t{shared_data["actualDuration"]*1000:5.0f}ms\n' \
+        f'Limited FPS: \t\t{shared_data["totalDurationFPS"]:4.1f}FPS \n' \
+        f'Limited process time: \t{shared_data["totalDuration"]*1000:5.0f}ms \n' \
+        f'Image cap dur: \t\t{shared_data["imageCaptureDuration"]*1000:5.0f}ms \n' \
+        f'Obs dur: \t\t{shared_data["obsCreationDuration"]*1000:5.0f}ms \n' \
+        f'Brain dur: \t\t{shared_data["brainDuration"]*1000:5.0f}ms \n' \
+        f'Frontend dur: \t\t{shared_data["frontendDuration"]*1000:5.0f}ms'
     line_jumps = console_text.count('\n')+2
     print(console_text)
     print(cursor_up(line_jumps))

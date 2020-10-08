@@ -70,6 +70,8 @@ class Game:
                         break
 
                 # 1) Get image
+                if self._image_source.frame_available() is None:
+                    print("==== IMAGE IS NONE")
                 if not self._image_source.frame_available():
                     self._shared_data['status'] = 'No image'
                     print("\n\n=========== No image\n\n")

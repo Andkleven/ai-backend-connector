@@ -28,8 +28,7 @@ In case you change a gRPC message check [this document](https://github.com/robot
     ```
     ALSA lib pcm_dmix.c:1089:(snd_pcm_dmix_open) unable to open slave
     ```
-    This has most likely something to do with gstreamer or opencv.
-    Some versions of `opencv-python`-package cause the script to crash but `opencv-python==4.2.0.32` and `opencv-contrib-python==4.2.0.32` don't crash.
+    This has most likely something to do with gstreamer or opencv. The message does not cause any harm.
 
 2. Qt: Session management error: None of the authentication protocols specified are supported
-    Something sets the `SESSION_MANAGER` environmental variable which opencv tries to use. Set the `SESSION_MANAGER` variable to empty string in terminal to fix the issue.
+    Something sets the `SESSION_MANAGER` environmental variable which opencv tries to use. Set the `SESSION_MANAGER` variable to empty string in terminal to fix the issue. The message does not cause any harm.
