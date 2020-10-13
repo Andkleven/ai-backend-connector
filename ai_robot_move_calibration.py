@@ -2,9 +2,6 @@ from absl import app
 from absl import flags
 
 import time
-from multiprocessing import Process, Value, Array, Manager
-from pynput import keyboard
-from pynput.keyboard import Key
 
 from ai_robot.ai_robot import RobotFrontend
 from utils.utils import parse_options

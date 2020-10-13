@@ -13,3 +13,5 @@ computer_vision/camera_calibration_params/*
 *.whl
 
 gitcommitmessage.txt
+
+temp

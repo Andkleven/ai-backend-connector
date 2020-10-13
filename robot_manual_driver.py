@@ -93,7 +93,7 @@ def main(_):
     params_file = FLAGS.params_file
     params = parse_options(params_file)
 
-    frontend = RobotFrontend(params)
+    frontend = RobotFrontend(params['ai_robots']['robots'][0])
 
     keyboard_actions = KeyboardActions()
     keyboard_actions.start()

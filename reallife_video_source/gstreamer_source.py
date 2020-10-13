@@ -11,7 +11,10 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 
 
-class GStreamerVideoSink():
+COLOR_CHANNELS = 3
+
+
+class VideoSource():
     """BlueRov video capture class constructor
     Attributes:
         port (int): Video UDP port
@@ -53,8 +56,8 @@ class GStreamerVideoSink():
         self.video_pipe = None
         self.video_sink = None
 
-        self._image_size = (self._width, self._height, 3)
-        arr_size = self._width * self._height * 3
+        self._image_size = (self._width, self._height, COLOR_CHANNELS)
+        arr_size = self._width * self._height * COLOR_CHANNELS
         self._shared_arr = Array(ctypes.c_uint8, arr_size)
         # self.video_capture_image = np.frombuffer(
         #     self._shared_arr.get_obj(),
@@ -147,7 +150,7 @@ class GStreamerVideoSink():
         Get frame to update _frame
         """
         try:
-            self._image_size = (self._width, self._height, 3)
+            self._image_size = (self._width, self._height, COLOR_CHANNELS)
             self._frame = np.frombuffer(
                 self._shared_arr.get_obj(),
                 dtype=np.uint8)
@@ -187,13 +190,13 @@ class GStreamerVideoSink():
 # Main for testing video connection. Run with below command executed in
 # project's root folder. Make sure 'params-prod.yaml' file has
 # 'ai_video_streamer' group and correct parameters set.
-# python -m reallife_camera_source.gstreamer_video_sink
+# python -m reallife_video_source.gstreamer_source
 if __name__ == '__main__':
     from utils.utils import parse_options
     # Create the video object
     # Add port= if is necessary to use a different one
     params = parse_options("params-prod.yaml")
-    video = GStreamerVideoSink(params)
+    video = VideoSource(params)
 
     while True:
         # Wait for the next frame

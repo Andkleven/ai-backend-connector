@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 
-class ImageProcesser():
+class ImageProcessor():
     def __init__(self, params):
         self._params = params
         self._aruco_detector = ArucoMarkerDetector(params)

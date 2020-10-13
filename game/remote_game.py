@@ -9,10 +9,10 @@ import numpy as np
 from utils.utils import parse_options
 from utils.constants import SIMU, TEST, PROD
 from ai_simulator.ai_simulator import UnitySimulation
-from ai_remote_brain.ai_remote_brain import UnityBrainServer
 from ai_robot.ai_robots_handler import AIRobotsHandler
 from reallife_video_source.ffmpeg_source import VideoSource
-from computer_vision.image_processor import ImageProcessor
+from computer_vision.remote_image_processor_client import (
+    RemoteImageProcessorClient)
 
 
 IMAGE_CHANNELS = 3
@@ -54,9 +54,8 @@ class Game:
             self._image_source, self._frontend = \
                 self._get_image_source_and_frontend(mode, params)
 
-            self._image_processor = ImageProcessor(params)
-            if mode == PROD or mode == SIMU:
-                brain_server = UnityBrainServer(params)
+            self._remote_image_processor = RemoteImageProcessorClient(
+                params)
 
             shared_image = np.frombuffer(
                 shared_array.get_obj(),
@@ -80,43 +79,20 @@ class Game:
                 image = self._image_source.frame()
                 self._log_time(log_name='imageCaptureDuration')
 
-                # 2) Get observations from image
-                # The _ and __ variables are placeholders for the second
-                # robot and it's observations
-                robot_observations_dict = \
-                    self._image_processor.image_to_observations(image=image)
-                self._log_time(log_name='obsCreationDuration')
-
-                # 2.1) We didn't get observations
-                if not robot_observations_dict:
-                    self._shared_data['status'] = 'No observations'
-                    # print("\n\n=========== No observations\n\n")
-                    self._stop_robots()
-                    self._end_routine()
-                    continue
-                # 2.2) We got observations
-                for aruco_id in robot_observations_dict.keys():
-                    self._shared_data[f'robot_{aruco_id}_lower_obs'] = \
-                        robot_observations_dict[aruco_id]['lower_obs']
-                    self._shared_data[f'robot_{aruco_id}_upper_obs'] = \
-                        robot_observations_dict[aruco_id]['lower_obs']
-                    self._shared_data['angles'] = self._image_processor.angles
-
+                # 2) Get observations from image: Done in remote
+                # 3) Get action from brain for the observations: Done in remote
+                actions, image_of_game = \
+                    self._remote_image_processor.image_to_actions(image=image)
+                self._log_time(log_name='actionCreationDuration')
                 if mode == PROD or mode == SIMU:
-                    # 3a) Get action from brain with the observations
-                    actions = brain_server.get_actions(robot_observations_dict)
-                    self._log_time(log_name='brainDuration')
-
                     # 4) Send the action to frontend
                     _ = self._frontend.make_actions(actions)
-                    self._shared_data['status'] = 'Playing game'
                     self._log_time(log_name='frontendDuration')
+                    self._shared_data['status'] = 'Playing game'
                 else:
-                    # 3b) Just log status, don't connect to
-                    # brain server nor frontend
                     self._shared_data['status'] = 'Running in test mode'
 
-                self._end_routine()
+                self._end_routine(image_of_game)
 
         except KeyboardInterrupt:
             print("\nGame: Keyboard Interrupt")
@@ -133,9 +109,9 @@ class Game:
             self._image_source.stop()
             print("Game: Game stopped")
 
-    def _end_routine(self):
+    def _end_routine(self, image):
         with self._shared_array.get_lock():
-            self._shared_image[:] = self._image_processor.get_image()
+            self._shared_image[:] = image
         self._log_time(log_name='actualDuration', log_end=True)
         wait_time = self._step_time - self._shared_data['actualDuration']
         if wait_time > 0:
