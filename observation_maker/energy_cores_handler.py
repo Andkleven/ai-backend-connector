@@ -1,3 +1,4 @@
+import functools
 from Box2D import (
     b2Vec2,
     b2CircleShape,
@@ -23,7 +24,15 @@ class EnergyCoresHandler(object):
         pass
 
     def get_ecore_counts(self):
-        return len(self._neg_ecores), len(self._pos_ecores)
+        def add_active_balls(sum, item):
+            if item.active is True:
+                return sum + 1
+            else:
+                return sum
+
+        neg_ecores = functools.reduce(add_active_balls, self._neg_ecores, 0)
+        pos_ecores = functools.reduce(add_active_balls, self._pos_ecores, 0)
+        return neg_ecores, pos_ecores
 
     def _handle_group(self, new_ecore_trans, ecore_arr, tag_name):
         current_ecore_count = len(ecore_arr)

@@ -28,6 +28,8 @@ flags.DEFINE_integer(
 FLAGS = flags.FLAGS
 
 
+# Example use:
+# python ai_robot_move_calibration.py -p=params-prod.yaml -d=200 -a=4
 def main(_):
     """
     Test communication between Robot and your PC.
@@ -36,7 +38,7 @@ def main(_):
     """
     params_file = FLAGS.params_file
     params = parse_options(params_file)
-    frontend = RobotFrontend(params)
+    frontend = RobotFrontend(params['ai_robots']['robots'][0])
 
     action = FLAGS.action
     duration = FLAGS.duration

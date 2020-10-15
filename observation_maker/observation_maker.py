@@ -113,6 +113,12 @@ class ObservationMaker(Framework):
         self._message = None
         self._stepper = self.run(single_step=True)
 
+    def stop(self):
+        print(f"GOING STOPPING 2: {self._running.value}")
+        self._running.value = False
+        # self._make_step()
+        print(f"GOING STOPPING 2.2: {self._running.value}")
+
     @property
     def angles(self):
         return self._friendly_robots_handler.angles

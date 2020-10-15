@@ -89,7 +89,11 @@ class VideoSource():
                     continue
                 with shared_array.get_lock():
                     image_inside_thread[:] = frame
-
+                # Show image streight from stream
+                # cv2.imshow('frame', frame)
+                # cv2.waitKey(1)
+        except KeyboardInterrupt:
+            pass
         except Exception as error:
             print(f'Got unexpected exception in "main" Message: {error}')
 

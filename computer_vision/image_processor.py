@@ -21,6 +21,12 @@ class ImageProcessor():
         """
         return self._observation_maker.angles
 
+    def stop(self):
+        print("GOING STOPPING")
+        self._observation_maker.stop()
+        self._make_step()
+        print("GOING STOPPING....")
+
     def get_image(self):
         image = self._observation_maker.get_image()
         return image

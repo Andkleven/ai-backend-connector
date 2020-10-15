@@ -48,6 +48,8 @@ from pygame.locals import (QUIT, KEYDOWN, KEYUP, MOUSEBUTTONDOWN,
 from observation_maker.box2d_framework.framework import (FrameworkBase, Keys)
 from observation_maker.box2d_framework.settings import fwSettings
 from Box2D import (b2DrawExtended, b2Vec2)
+from multiprocessing import Value
+from ctypes import c_bool
 
 try:
     from observation_maker.box2d_framework.pygame_gui import (fwGUI, gui)
@@ -233,6 +235,8 @@ class PygameFramework(FrameworkBase):
         self.screen_width = width
         self.screen_height = height
 
+        self._running = Value(c_bool, True)
+
         super(PygameFramework, self).__init__()
 
         self.__reset()
@@ -361,15 +365,14 @@ class PygameFramework(FrameworkBase):
         if GUIEnabled:
             self.gui_table.updateGUI(self.settings)
 
-        running = True
         clock = pygame.time.Clock()
 
         try:
-            while running:
+            while self._running.value:
                 self.screen.fill((0, 0, 0))
                 self.screen.blit(self._background, (0, 0))
 
-                running = self.checkEvents()
+                self._running.value = self.checkEvents()
 
                 # Check keys that should be checked every loop (not only on
                 # initial keydown)
@@ -388,6 +391,7 @@ class PygameFramework(FrameworkBase):
 
                 if single_step is True:
                     yield
+            print("Game loop ended")
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt -> Exiting")
