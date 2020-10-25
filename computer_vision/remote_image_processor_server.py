@@ -1,9 +1,11 @@
 from concurrent import futures
+import os
 import traceback
 import logging
 import cv2
 import numpy as np
 import grpc
+import time
 
 import proto.RemoteImageToActions_pb2 as rita_pb2
 import proto.RemoteImageToActions_pb2_grpc as rita_pb2_grpc
@@ -20,14 +22,19 @@ class RemoteImageToActions(rita_pb2_grpc.ImageToActionsServerServicer):
 
     def ImageToActions(self, request, context):
         try:
+            start_time = time.time()
             jpg_image = request.image
             image = self._decode_image(jpg_image)
             robot_actions = self._get_actions(image)
 
             game_image = self._image_processor.get_image()
+            cv2.imshow('game_image', game_image)
+            cv2.waitKey(1)
             response = rita_pb2.ActionsResponse(
                 image=self._encode_image(game_image),
                 actions=robot_actions)
+            duration = time.time() - start_time
+            print(f'Duration: {duration*1000:5.0f}ms', end='\r')
             return response
         except Exception as error:
             traceback.print_exc()
@@ -66,18 +73,19 @@ class RemoteImageToActions(rita_pb2_grpc.ImageToActionsServerServicer):
 class RemoteImageProcessorServer():
     def __init__(self, params):
         self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=3))
-        with open('temp/ssh_keys_local/key.pem', 'rb') as f:
-            private_key = f.read()
-        with open('temp/ssh_keys_local/cert.pem', 'rb') as f:
-            certificate_chain = f.read()
-        server_credentials = grpc.ssl_server_credentials(
-            ((private_key, certificate_chain),))
+        # with open('temp/ssh_keys_local/key.pem', 'rb') as f:
+        #     private_key = f.read()
+        # with open('temp/ssh_keys_local/cert.pem', 'rb') as f:
+        #     certificate_chain = f.read()
+        # server_credentials = grpc.ssl_server_credentials(
+        #     ((private_key, certificate_chain),))
 
         self._class = RemoteImageToActions(params)
         rita_pb2_grpc.add_ImageToActionsServerServicer_to_server(
             self._class,
             self._server)
-        self._server.add_secure_port('0.0.0.0:50054', server_credentials)
+        # self._server.add_secure_port('0.0.0.0:50054', server_credentials)
+        self._server.add_insecure_port('0.0.0.0:50054')
 
     def start(self):
         # try:
@@ -116,5 +124,8 @@ def main():
 
 if __name__ == '__main__':
     from utils.utils import parse_options
+    # https://www.pygame.org/wiki/HeadlessNoWindowsNeeded
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'
+    os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'true'
 
     main()

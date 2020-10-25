@@ -1,23 +1,18 @@
-
 #!/usr/bin/env python
 import time
 import cv2
-import gi
-from reallife_camera_source.gstreamer_video_sink import GStreamerVideoSink
+from reallife_video_source.ffmpeg_source import VideoSource
 from utils.utils import parse_options
 
-gi.require_version('Gst', '1.0')
-from gi.repository import Gst
 
-
-TIME_INTERVAL = 3
+TIME_INTERVAL = 1
 
 
 if __name__ == '__main__':
     # Create the video object
     # Add port= if is necessary to use a different one
     params = parse_options("params-prod.yaml")
-    video = GStreamerVideoSink(params)
+    video = VideoSource(params)
 
     counter = 0
     last_time = time.time()

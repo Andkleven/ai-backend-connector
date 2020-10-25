@@ -10,9 +10,10 @@ import proto.RemoteImageToActions_pb2_grpc as rita_pb2_grpc
 
 class RemoteImageProcessorClient():
     def __init__(self, params):
-        with open('temp/ssh_keys_local/cert_cli.pem', 'rb') as f:
-            creds = grpc.ssl_channel_credentials(f.read())
-        channel = grpc.secure_channel('localhost:50054', creds)
+        # with open('temp/ssh_keys_local/cert_cli.pem', 'rb') as f:
+        #     creds = grpc.ssl_channel_credentials(f.read())
+        # channel = grpc.secure_channel('localhost:50054', creds)
+        channel = grpc.insecure_channel('localhost:50054')
         self._stub = rita_pb2_grpc.ImageToActionsServerStub(channel)
 
     def _decode_image(self, image):
