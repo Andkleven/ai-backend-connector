@@ -64,8 +64,8 @@ class RobotFrontend:
             r_motor = 0
         else:
             raise Exception("Unknown action {}".format(action))
-        # print("Action {}, L: {}, R: {}".format(
-        #     action, int(l_motor), int(r_motor)))
+        print("Action {}, L: {}, R: {}".format(
+              action, int(l_motor), int(r_motor)))
         return int(l_motor), int(r_motor)
 
     def make_action(self, action):
