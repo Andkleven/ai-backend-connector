@@ -39,7 +39,7 @@ class Game:
 
             self._robot_arucos = []
             for robot in params["ai_robots"]["robots"]:
-                self._robot_arucos.append(robot['aruco_code'])
+                self._robot_arucos.append(int(robot['aruco_code']))
 
             if 'simulation' in params:
                 width = params['simulation']['capture_width']
@@ -107,7 +107,10 @@ class Game:
                     actions = brain_server.get_actions(robot_observations_dict)
                     self._log_time(log_name='brainDuration')
 
+                    print(f"Got actions: {actions}")
                     # 4) Send the action to frontend
+                    actions = dict(filter(lambda act: act[0] in self._robot_arucos, actions.items()))
+                    print(f"Got filtered: {actions}")
                     _ = self._frontend.make_actions(actions)
                     self._shared_data['status'] = 'Playing game'
                     self._log_time(log_name='frontendDuration')

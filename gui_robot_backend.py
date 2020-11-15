@@ -120,7 +120,7 @@ def main(_):
                 cv2.waitKey(1)
             if shared_state.value is False:
                 raise Exception("Error in game")
-            line_jumps = print_game_data(shared_data)
+            #line_jumps = print_game_data(shared_data)
             time.sleep(0.1)
 
     except KeyboardInterrupt:
