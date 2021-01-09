@@ -106,6 +106,7 @@ def main(_):
     Connect to IP cam and print results
     '''
     mode = FLAGS.mode
+    print(mode)
     (shared_image,
      shared_array,
      shared_state,
